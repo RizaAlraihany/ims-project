@@ -63,6 +63,11 @@ class User extends Authenticatable
             ->all() ?? [];
     }
 
+    public function hasPermissionTo(string $code): bool
+    {
+        return in_array($code, $this->permissionCodes(), true);
+    }
+
     public function transfers(): HasMany
     {
         return $this->hasMany(Transfer::class, 'created_by');

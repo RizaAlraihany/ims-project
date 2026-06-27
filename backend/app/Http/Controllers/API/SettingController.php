@@ -11,12 +11,18 @@ class SettingController extends Controller
 {
     public function index(): JsonResponse
     {
+        $query = Setting::query()->orderBy('key');
+
+        if (request()->user() && request()->user()->roleRecord?->name !== 'Super Admin') {
+            $query->where('key', 'not like', 'security.%')
+                  ->where('key', 'not like', 'api.%')
+                  ->where('key', 'not like', 'backup.%');
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Settings retrieved.',
-            'data' => Setting::query()
-                ->orderBy('key')
-                ->get(['id', 'key', 'value']),
+            'data' => $query->get(['id', 'key', 'value']),
         ]);
     }
 

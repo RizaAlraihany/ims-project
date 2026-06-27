@@ -39,7 +39,7 @@ function getPageInfo(pathname, search, t) {
   return { title: 'IMS Pro', subtitle: t.systemFallback };
 }
 
-function TopHeader() {
+function TopHeader({ onMobileMenuToggle }) {
   const location = useLocation()
   const { t } = useLanguage()
   const pageInfo = getPageInfo(location.pathname, location.search, t)
@@ -94,6 +94,7 @@ function TopHeader() {
             variant="outline"
             className="flex size-12 items-center justify-center rounded-2xl border border-ims-slate/20 bg-white text-ims-navy shadow-none transition-all duration-300 hover:border-ims-blue lg:hidden"
             aria-label="Open menu"
+            onClick={onMobileMenuToggle}
           >
             <Menu className="size-6 text-ims-navy" />
           </Button>

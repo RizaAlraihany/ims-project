@@ -9,6 +9,7 @@ function AuthProvider({ children }) {
   const isAuthenticated = Boolean(token)
 
   const login = useCallback(async (payload) => {
+    await authApi.csrf()
     const response = await authApi.login(payload)
     const session = storeSession(response.data)
 

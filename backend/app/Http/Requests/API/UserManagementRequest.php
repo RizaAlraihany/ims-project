@@ -10,7 +10,8 @@ class UserManagementRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $permission = $this->isMethod('post') ? 'user.create' : 'user.update';
+        return $this->user()?->hasPermissionTo($permission) ?? false;
     }
 
     /**

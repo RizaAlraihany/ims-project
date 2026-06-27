@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Archive, Building2, ClipboardList, PackageCheck, AlertCircle, ArrowRightLeft } from 'lucide-react'
 import { dashboardApi } from '@/api/dashboard'
 import { BarTrendPanel, DonutPanel, ChartFilter } from '@/components/analytics/OperationalCharts'
@@ -270,7 +271,7 @@ function Dashboard() {
           <div className="flex h-full flex-col overflow-hidden rounded-3xl border border-ims-slate/20 bg-white">
             <div className="flex items-center justify-between border-b border-ims-slate/10 p-5">
               <h3 className="text-base font-bold text-ims-navy">{t.lowStockItems}</h3>
-              <a href="/inventory" className="text-sm font-semibold text-ims-blue hover:underline">{t.viewAll}</a>
+              <Link to="/inventory" className="text-sm font-semibold text-ims-blue hover:underline">{t.viewAll}</Link>
             </div>
 
             {isLoading ? (
@@ -316,7 +317,7 @@ function Dashboard() {
                   </table>
                 </div>
                 <div className="border-t border-ims-slate/10 p-5 text-center">
-                  <a href="/inventory" className="text-sm font-bold text-ims-blue hover:underline">{t.viewAllLowStock}</a>
+                  <Link to="/inventory" className="text-sm font-bold text-ims-blue hover:underline">{t.viewAllLowStock}</Link>
                 </div>
               </>
             )}
@@ -328,7 +329,7 @@ function Dashboard() {
           <div className="flex h-full flex-col overflow-hidden rounded-3xl border border-ims-slate/20 bg-white">
             <div className="flex items-center justify-between border-b border-ims-slate/10 p-5">
               <h3 className="text-base font-bold text-ims-navy">{t.recentActivities}</h3>
-              <a href="/audit" className="text-sm font-semibold text-ims-blue hover:underline">{t.viewAll}</a>
+              <Link to="/audit" className="text-sm font-semibold text-ims-blue hover:underline">{t.viewAll}</Link>
             </div>
 
             <div className="flex-1 overflow-y-auto">

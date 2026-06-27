@@ -254,14 +254,16 @@ function SidebarGroup({ group, isOpen, t, showTitle = true }) {
   )
 }
 
-function DesktopSidebar({ isOpen, onToggle }) {
+function DesktopSidebar({ isOpen, onToggle, isMobile }) {
   const { t } = useLanguage()
 
   return (
     <aside
       className={cn(
-        'relative z-30 hidden min-h-full flex-col border-r border-ims-slate/20 bg-white py-0 transition-all duration-300 lg:flex',
-        isOpen ? 'w-[280px]' : 'w-[88px] items-center',
+        'relative z-30 min-h-full flex-col border-r border-ims-slate/20 bg-white py-0 transition-all duration-300',
+        !isMobile && 'hidden lg:flex',
+        isMobile && 'flex w-[280px]',
+        !isMobile && isOpen ? 'w-[280px]' : !isMobile && 'w-[88px] items-center',
       )}
     >
       {/* Toggle button */}
@@ -305,9 +307,19 @@ function DesktopSidebar({ isOpen, onToggle }) {
 
 function MainLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
 
   return (
     <div className="min-h-svh bg-white text-ims-navy">
+      {isMobileSidebarOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onClick={() => setIsMobileSidebarOpen(false)} />
+          <div className="fixed inset-y-0 left-0 w-[280px] bg-white shadow-xl">
+            <DesktopSidebar isOpen={true} onToggle={() => setIsMobileSidebarOpen(false)} isMobile={true} />
+          </div>
+        </div>
+      )}
+
       <div
         className={cn(
           'relative min-h-svh bg-white transition-[grid-template-columns] duration-300 lg:grid lg:h-svh lg:w-full lg:overflow-hidden',
@@ -318,7 +330,7 @@ function MainLayout() {
       >
         <DesktopSidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen((v) => !v)} />
         <div className="flex min-h-svh min-w-0 flex-col bg-ims-cream/35 lg:min-h-0">
-          <TopHeader />
+          <TopHeader onMobileMenuToggle={() => setIsMobileSidebarOpen(true)} />
           <main className="ims-page flex-1 px-4 pb-24 pt-4 lg:min-h-0 lg:overflow-y-auto lg:px-8 lg:pb-8 lg:pt-6">
             <Outlet />
           </main>

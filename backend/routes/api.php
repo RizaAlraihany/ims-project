@@ -18,7 +18,7 @@ use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\WarehouseController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 
 Route::middleware('auth:sanctum')->group(function (): void {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -49,17 +49,17 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::get('/transfers', [TransferController::class, 'index']);
     Route::post('/transfers', [TransferController::class, 'store']);
     Route::get('/transfers/{transfer}', [TransferController::class, 'show']);
-    Route::put('/transfers/{transfer}/approve', [TransferController::class, 'approve']);
-    Route::put('/transfers/{transfer}/transit', [TransferController::class, 'transit']);
-    Route::put('/transfers/{transfer}/receive', [TransferController::class, 'receive']);
-    Route::put('/transfers/{transfer}/complete', [TransferController::class, 'complete']);
-    Route::put('/transfers/{transfer}/reject', [TransferController::class, 'reject']);
+    Route::put('/transfers/{transfer}/approve', [TransferController::class, 'approve'])->middleware('permission:transfer.approve');
+    Route::put('/transfers/{transfer}/transit', [TransferController::class, 'transit'])->middleware('permission:transfer.transit');
+    Route::put('/transfers/{transfer}/receive', [TransferController::class, 'receive'])->middleware('permission:transfer.receive');
+    Route::put('/transfers/{transfer}/complete', [TransferController::class, 'complete'])->middleware('permission:transfer.complete');
+    Route::put('/transfers/{transfer}/reject', [TransferController::class, 'reject'])->middleware('permission:transfer.reject');
 
     Route::get('/stock-opnames', [StockOpnameController::class, 'index']);
     Route::post('/stock-opnames', [StockOpnameController::class, 'store']);
     Route::get('/stock-opnames/{stockOpname}', [StockOpnameController::class, 'show']);
     Route::post('/stock-opnames/{stockOpname}/items', [StockOpnameController::class, 'saveItem']);
-    Route::post('/stock-opnames/{stockOpname}/approve', [StockOpnameController::class, 'approve']);
+    Route::post('/stock-opnames/{stockOpname}/approve', [StockOpnameController::class, 'approve'])->middleware('permission:opname.approve');
 
     Route::get('/reports/stocks', [ReportController::class, 'stocks']);
     Route::get('/reports/movements', [ReportController::class, 'movements']);
@@ -71,17 +71,22 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::put('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
 
-    Route::apiResource('users', UserController::class)->except(['show']);
-    Route::get('/roles', [RoleController::class, 'index']);
-    Route::get('/permissions', [RoleController::class, 'permissions']);
-    Route::put('/roles/{role}/permissions', [RoleController::class, 'syncPermissions']);
-    Route::get('/settings', [SettingController::class, 'index']);
-    Route::put('/settings', [SettingController::class, 'update']);
+    Route::apiResource('users', UserController::class)->except(['show'])->middleware('permission:user.view');
+    Route::post('users', [UserController::class, 'store'])->middleware('permission:user.create');
+    Route::put('users/{user}', [UserController::class, 'update'])->middleware('permission:user.update');
+    Route::delete('users/{user}', [UserController::class, 'destroy'])->middleware('permission:user.delete');
+
+    Route::get('/roles', [RoleController::class, 'index'])->middleware('permission:role.view');
+    Route::get('/permissions', [RoleController::class, 'permissions'])->middleware('permission:role.view');
+    Route::put('/roles/{role}/permissions', [RoleController::class, 'syncPermissions'])->middleware('permission:role.update_permission');
+    
+    Route::get('/settings', [SettingController::class, 'index'])->middleware('permission:setting.view');
+    Route::put('/settings', [SettingController::class, 'update'])->middleware('permission:setting.update');
 });
 
 Route::prefix('v1')->group(function (): void {
     Route::prefix('auth')->group(function (): void {
-        Route::post('/login', [AuthController::class, 'login']);
+        Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 
         Route::middleware('auth:sanctum')->group(function (): void {
             Route::post('/logout', [AuthController::class, 'logout']);
@@ -112,17 +117,17 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/transfers', [TransferController::class, 'index']);
         Route::post('/transfers', [TransferController::class, 'store']);
         Route::get('/transfers/{transfer}', [TransferController::class, 'show']);
-        Route::put('/transfers/{transfer}/approve', [TransferController::class, 'approve']);
-        Route::put('/transfers/{transfer}/transit', [TransferController::class, 'transit']);
-        Route::put('/transfers/{transfer}/receive', [TransferController::class, 'receive']);
-        Route::put('/transfers/{transfer}/complete', [TransferController::class, 'complete']);
-        Route::put('/transfers/{transfer}/reject', [TransferController::class, 'reject']);
+        Route::put('/transfers/{transfer}/approve', [TransferController::class, 'approve'])->middleware('permission:transfer.approve');
+        Route::put('/transfers/{transfer}/transit', [TransferController::class, 'transit'])->middleware('permission:transfer.transit');
+        Route::put('/transfers/{transfer}/receive', [TransferController::class, 'receive'])->middleware('permission:transfer.receive');
+        Route::put('/transfers/{transfer}/complete', [TransferController::class, 'complete'])->middleware('permission:transfer.complete');
+        Route::put('/transfers/{transfer}/reject', [TransferController::class, 'reject'])->middleware('permission:transfer.reject');
 
         Route::get('/stock-opnames', [StockOpnameController::class, 'index']);
         Route::post('/stock-opnames', [StockOpnameController::class, 'store']);
         Route::get('/stock-opnames/{stockOpname}', [StockOpnameController::class, 'show']);
         Route::post('/stock-opnames/{stockOpname}/items', [StockOpnameController::class, 'saveItem']);
-        Route::post('/stock-opnames/{stockOpname}/approve', [StockOpnameController::class, 'approve']);
+        Route::post('/stock-opnames/{stockOpname}/approve', [StockOpnameController::class, 'approve'])->middleware('permission:opname.approve');
 
         Route::get('/reports/stocks', [ReportController::class, 'stocks']);
         Route::get('/reports/movements', [ReportController::class, 'movements']);
@@ -134,11 +139,16 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/notifications', [NotificationController::class, 'index']);
         Route::put('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
 
-        Route::apiResource('users', UserController::class)->except(['show']);
-        Route::get('/roles', [RoleController::class, 'index']);
-        Route::get('/permissions', [RoleController::class, 'permissions']);
-        Route::put('/roles/{role}/permissions', [RoleController::class, 'syncPermissions']);
-        Route::get('/settings', [SettingController::class, 'index']);
-        Route::put('/settings', [SettingController::class, 'update']);
+        Route::apiResource('users', UserController::class)->except(['show'])->middleware('permission:user.view');
+        Route::post('users', [UserController::class, 'store'])->middleware('permission:user.create');
+        Route::put('users/{user}', [UserController::class, 'update'])->middleware('permission:user.update');
+        Route::delete('users/{user}', [UserController::class, 'destroy'])->middleware('permission:user.delete');
+
+        Route::get('/roles', [RoleController::class, 'index'])->middleware('permission:role.view');
+        Route::get('/permissions', [RoleController::class, 'permissions'])->middleware('permission:role.view');
+        Route::put('/roles/{role}/permissions', [RoleController::class, 'syncPermissions'])->middleware('permission:role.update_permission');
+        
+        Route::get('/settings', [SettingController::class, 'index'])->middleware('permission:setting.view');
+        Route::put('/settings', [SettingController::class, 'update'])->middleware('permission:setting.update');
     });
 });

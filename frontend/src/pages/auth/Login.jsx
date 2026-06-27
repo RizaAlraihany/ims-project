@@ -14,8 +14,8 @@ function Login() {
   const { isAuthenticated, login } = useAuth()
   const from = '/'
   const [form, setForm] = useState({
-    email: 'admin@ims.test',
-    password: 'password',
+    email: import.meta.env.DEV ? 'admin@ims.test' : '',
+    password: import.meta.env.DEV ? 'password' : '',
     device_name: 'ims-frontend',
   })
   const [error, setError] = useState('')
@@ -30,7 +30,7 @@ function Login() {
       await login(form)
       navigate(from, { replace: true })
     } catch (error) {
-      setError(error.response?.data?.message ?? 'Login gagal. Periksa koneksi API.')
+      setError(error.response?.data?.message ?? 'Koneksi ke server gagal. Silakan periksa jaringan Anda dan coba lagi.')
     } finally {
       setIsSubmitting(false)
     }
@@ -81,8 +81,11 @@ function Login() {
               </div>
               
               {error ? (
-                <div className="rounded-xl border border-ims-danger/20 bg-ims-danger/10 p-3 text-sm font-medium text-ims-danger">
-                  {error}
+                <div className="rounded-xl border border-ims-danger/30 bg-ims-danger/5 p-4 text-sm font-medium text-ims-danger shadow-sm">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-bold">Gagal Masuk</span>
+                  </div>
+                  <p className="opacity-90">{error}</p>
                 </div>
               ) : null}
               
@@ -101,7 +104,6 @@ function Login() {
           <div className="absolute inset-0 overflow-hidden rounded-r-[1.5rem]">
             <div className="absolute -right-[20%] -top-[10%] h-[70%] w-[70%] rounded-full bg-ims-blue/30 blur-[120px]" />
             <div className="absolute -bottom-[20%] -left-[10%] h-[70%] w-[70%] rounded-full bg-indigo-500/20 blur-[120px]" />
-            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
           </div>
 
           <div className="relative z-10 flex h-full flex-col justify-between rounded-[1.5rem] border border-white/10 bg-white/5 p-12 backdrop-blur-md shadow-2xl">
