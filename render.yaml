@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: ims-backend
+    env: docker
+    region: singapore # You can change this to ohio, frankfurt, or oregon based on your preference
+    plan: free # Change to starter/standard if you need more power
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    autoDeploy: false
+    envVars:
+      - key: APP_NAME
+        value: "IMS Project"
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_KEY
+        sync: false # Requires you to manually put APP_KEY in the Render dashboard or it will fail
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        sync: false # Set in Render dashboard
+      - key: DB_PORT
+        value: "3306"
+      - key: DB_DATABASE
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: REDIS_CLIENT
+        value: phpredis
+      - key: CACHE_STORE
+        value: database # Or redis if you set one up
+      - key: QUEUE_CONNECTION
+        value: sync # Change to redis if you setup a background worker
+      - key: SESSION_DRIVER
+        value: database
