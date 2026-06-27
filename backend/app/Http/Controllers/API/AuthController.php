@@ -9,6 +9,7 @@ use App\Services\AuditService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -29,7 +30,11 @@ class AuthController extends Controller
             ]);
         }
 
-        $token = $user->createToken($request->validated('device_name') ?? 'ims-api')->plainTextToken;
+        Auth::guard('web')->login($user);
+        
+        // Regenerate session to prevent session fixation
+        $request->session()->regenerate();
+
         $userData = $this->userPayload($user);
         $auditService->log($user, 'LOGIN', 'users', $user->id, null, ['email' => $user->email], $request->ip());
 
@@ -37,10 +42,8 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Login berhasil.',
             'data' => [
-                'token' => $token,
                 'user' => $userData,
             ],
-            'token' => $token,
             'user' => $userData,
         ]);
     }
@@ -49,7 +52,12 @@ class AuthController extends Controller
     {
         $user = $request->user();
         $auditService->log($user, 'LOGOUT', 'users', $user?->id, null, ['email' => $user?->email], $request->ip());
-        $request->user()?->currentAccessToken()?->delete();
+        
+        Auth::guard('web')->logout();
+        
+        // Invalidate session
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json([
             'success' => true,

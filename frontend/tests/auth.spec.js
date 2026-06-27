@@ -11,11 +11,11 @@ test.describe('Authentication & Navigation', () => {
     await expect(page).toHaveURL(/.*login/);
     
     // Fill credentials (assuming admin credentials are used for testing)
-    await page.fill('input[type="text"]', 'admin@ims.test');
-    await page.fill('input[type="password"]', 'password');
+    await page.fill('#email', 'admin@ims.test');
+    await page.fill('#password', 'password');
     
     // Click login
-    await page.click('button:has-text("Masuk ke Sistem")');
+    await page.locator('button').click();
     
     // Wait for navigation and verify dashboard is loaded
     await expect(page).toHaveURL('http://localhost:5173/');
@@ -29,9 +29,9 @@ test.describe('Authentication & Navigation', () => {
   });
 
   test('should show error for invalid credentials', async ({ page }) => {
-    await page.fill('input[type="text"]', 'admin@ims.test');
-    await page.fill('input[type="password"]', 'wrongpassword');
-    await page.click('button:has-text("Masuk ke Sistem")');
+    await page.fill('#email', 'admin@ims.test');
+    await page.fill('#password', 'wrongpassword');
+    await page.locator('button').click();
     
     // Verify error message
     await expect(page.locator('text=Gagal Masuk')).toBeVisible();

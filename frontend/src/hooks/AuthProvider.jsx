@@ -1,19 +1,17 @@
 import { useCallback, useMemo, useState } from 'react'
 import { authApi } from '@/api/auth'
 import { AuthContext } from '@/hooks/authContext'
-import { clearSession, getStoredToken, getStoredUser, normalizeSession, storeSession } from '@/store/authStorage'
+import { clearSession, getStoredUser, normalizeSession, storeSession } from '@/store/authStorage'
 
 function AuthProvider({ children }) {
-  const [token, setToken] = useState(getStoredToken)
   const [user, setUser] = useState(getStoredUser)
-  const isAuthenticated = Boolean(token)
+  const isAuthenticated = Boolean(user)
 
   const login = useCallback(async (payload) => {
     await authApi.csrf()
     const response = await authApi.login(payload)
     const session = storeSession(response.data)
 
-    setToken(session.token)
     setUser(session.user)
 
     return session
@@ -21,20 +19,18 @@ function AuthProvider({ children }) {
 
   const logout = useCallback(async () => {
     try {
-      if (token) {
+      if (isAuthenticated) {
         await authApi.logout()
       }
     } finally {
       clearSession()
-      setToken(null)
       setUser(null)
     }
-  }, [token])
+  }, [isAuthenticated])
 
   const refreshUser = useCallback(async () => {
     const response = await authApi.user()
     const session = normalizeSession({
-      token,
       user: response.data?.data?.user ?? response.data?.user,
     })
 
@@ -44,7 +40,7 @@ function AuthProvider({ children }) {
     }
 
     return session.user
-  }, [token])
+  }, [])
 
   const hasPermission = useCallback(
     (permission) => {
@@ -73,10 +69,9 @@ function AuthProvider({ children }) {
       login,
       logout,
       refreshUser,
-      token,
       user,
     }),
-    [hasAllPermissions, hasAnyPermission, hasPermission, isAuthenticated, login, logout, refreshUser, token, user],
+    [hasAllPermissions, hasAnyPermission, hasPermission, isAuthenticated, login, logout, refreshUser, user],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
