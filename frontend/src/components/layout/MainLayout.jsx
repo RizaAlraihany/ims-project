@@ -295,7 +295,7 @@ function DesktopSidebar({ isOpen, onToggle, isMobile }) {
   return (
     <aside
       className={cn(
-        'relative z-30 min-h-full flex-col border-r border-ims-slate/20 bg-white py-0 transition-all duration-300',
+        'relative z-40 min-h-full flex-col border-r border-ims-slate/20 bg-white py-0 transition-all duration-300',
         !isMobile && 'hidden lg:flex',
         isMobile && 'flex w-[280px]',
         !isMobile && isOpen ? 'w-[280px]' : !isMobile && 'w-[88px] items-center',
@@ -304,7 +304,7 @@ function DesktopSidebar({ isOpen, onToggle, isMobile }) {
       {/* Toggle button */}
       <button
         onClick={onToggle}
-        className="absolute -right-3 top-8 z-10 grid h-7 w-7 place-items-center rounded-full border border-ims-slate/20 bg-white text-ims-slate shadow-sm hover:border-ims-blue/50 hover:text-ims-navy"
+        className="absolute right-0 top-8 z-50 grid h-7 w-7 translate-x-1/2 place-items-center rounded-full border border-ims-slate/20 bg-white text-ims-slate shadow-sm transition-colors hover:border-ims-blue/50 hover:text-ims-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ims-blue"
         aria-label="Toggle Sidebar"
         aria-expanded={isOpen}
       >
