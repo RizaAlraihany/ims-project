@@ -6,7 +6,7 @@ import { contactsApi } from '@/api/contacts'
 import { productsApi } from '@/api/products'
 import { unitsApi } from '@/api/units'
 import { warehousesApi } from '@/api/warehouses'
-import { BarTrendPanel, DonutPanel, MetricCard } from '@/components/analytics/OperationalCharts'
+import { BarTrendPanel, ChartFilter, DonutPanel, MetricCard } from '@/components/analytics/OperationalCharts'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -201,12 +201,12 @@ function productCatalogSummary(items, meta) {
   return { totalProducts, lowStockItems, inStock, outOfStock }
 }
 
-function ProductCatalogStats({ summary }) {
+function ProductCatalogStats({ summary, t }) {
   const cards = [
-    { label: 'Total Products', value: summary.totalProducts, tag: 'All', icon: Boxes, tone: 'bg-ims-blue/10 text-ims-blue', tagTone: 'bg-ims-cream text-ims-slate' },
-    { label: 'Low Stock Items', value: summary.lowStockItems, tag: 'Action Req.', icon: CircleAlert, tone: 'bg-ims-warning/10 text-ims-warning', tagTone: 'bg-ims-danger/10 text-ims-danger' },
-    { label: 'In Stock', value: summary.inStock, tag: 'Available', icon: CircleCheck, tone: 'bg-ims-success/10 text-ims-success', tagTone: 'bg-ims-success/10 text-ims-success' },
-    { label: 'Out of Stock', value: summary.outOfStock, tag: 'Reorder', icon: CircleX, tone: 'bg-ims-danger/10 text-ims-danger', tagTone: 'bg-ims-cream text-ims-slate' },
+    { label: t.products, value: summary.totalProducts, tag: t.total, icon: Boxes, tone: 'bg-ims-blue/10 text-ims-blue', tagTone: 'bg-ims-cream text-ims-slate' },
+    { label: t.lowStockItems, value: summary.lowStockItems, tag: t.actionRequired, icon: CircleAlert, tone: 'bg-ims-warning/10 text-ims-warning', tagTone: 'bg-ims-danger/10 text-ims-danger' },
+    { label: t.inStock, value: summary.inStock, tag: t.available, icon: CircleCheck, tone: 'bg-ims-success/10 text-ims-success', tagTone: 'bg-ims-success/10 text-ims-success' },
+    { label: t.outOfStock, value: summary.outOfStock, tag: t.reorder, icon: CircleX, tone: 'bg-ims-danger/10 text-ims-danger', tagTone: 'bg-ims-cream text-ims-slate' },
   ]
 
   return (
@@ -242,7 +242,7 @@ function recentDayLabels() {
   })
 }
 
-function ProductInventoryCharts({ summary }) {
+function ProductInventoryCharts({ summary, t }) {
   const [period, setPeriod] = useState('monthly')
   const isWeekly = period === 'weekly'
 
@@ -260,25 +260,10 @@ function ProductInventoryCharts({ summary }) {
       <div className="flex flex-col gap-6 rounded-3xl border border-ims-slate/20 bg-white p-6 lg:col-span-2">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div>
-            <h3 className="text-lg font-bold text-ims-navy">Stock Trends</h3>
-            <p className="text-sm text-ims-slate">Inventory levels over time</p>
+            <h3 className="text-lg font-bold text-ims-navy">{t.stockTrends}</h3>
+            <p className="text-sm text-ims-slate">{t.stockTrendsSubtitle}</p>
           </div>
-          <div className="flex w-fit items-center gap-2 rounded-xl bg-ims-cream/40 p-1">
-            <button 
-              type="button" 
-              onClick={() => setPeriod('weekly')}
-              className={`cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${isWeekly ? 'bg-white font-bold text-ims-navy shadow-sm' : 'text-ims-slate hover:bg-white/50'}`}
-            >
-              Weekly
-            </button>
-            <button 
-              type="button" 
-              onClick={() => setPeriod('monthly')}
-              className={`cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${!isWeekly ? 'bg-white font-bold text-ims-navy shadow-sm' : 'text-ims-slate hover:bg-white/50'}`}
-            >
-              Monthly
-            </button>
-          </div>
+          <ChartFilter period={period} onChange={setPeriod} />
         </div>
 
         <div className="mt-2 overflow-x-auto">
@@ -315,19 +300,19 @@ function ProductInventoryCharts({ summary }) {
         <div className="mt-0 flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-1.5 text-xs font-medium text-ims-slate">
             <span className="size-[14px] rounded-full bg-ims-blue" />
-            Stock In
+            {t.stockIn}
           </div>
           <div className="flex items-center gap-1.5 text-xs font-medium text-ims-slate">
             <span className="size-[14px] rounded-full bg-ims-success/100" />
-            Stock Out
+            {t.stockOut}
           </div>
         </div>
       </div>
 
       <div className="flex flex-col gap-6 rounded-3xl border border-ims-slate/20 bg-white p-6">
         <div>
-          <h3 className="text-lg font-bold text-ims-navy">Operational Mix</h3>
-          <p className="mt-1 text-sm text-ims-slate">Komposisi status stok saat ini</p>
+          <h3 className="text-lg font-bold text-ims-navy">{t.operationalMix}</h3>
+          <p className="mt-1 text-sm text-ims-slate">{t.currentStockMix}</p>
         </div>
         
         <div className="grid place-items-center">
@@ -344,7 +329,7 @@ function ProductInventoryCharts({ summary }) {
                 <p className="text-[34px] font-black text-ims-navy">
                   {summary.outOfStock + summary.lowStockItems + Math.max(0, summary.inStock - summary.lowStockItems)}
                 </p>
-                <p className="text-[13px] font-bold text-ims-slate/80">record</p>
+                <p className="text-[13px] font-bold text-ims-slate/80">{t.records}</p>
               </div>
             </div>
           </div>
@@ -354,21 +339,21 @@ function ProductInventoryCharts({ summary }) {
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-3">
               <span className="size-3 rounded-full bg-[#B91C1C]" />
-              <span className="font-medium text-ims-slate">Stok Habis</span>
+              <span className="font-medium text-ims-slate">{t.outOfStock}</span>
             </div>
             <span className="font-black text-ims-navy">{summary.outOfStock || 0}</span>
           </div>
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-3">
               <span className="size-3 rounded-full bg-[#D97706]" />
-              <span className="font-medium text-ims-slate">Stok Rendah</span>
+              <span className="font-medium text-ims-slate">{t.lowStock}</span>
             </div>
             <span className="font-black text-ims-navy">{summary.lowStockItems || 0}</span>
           </div>
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-3">
               <span className="size-3 rounded-full bg-[#4B5694]" />
-              <span className="font-medium text-ims-slate">Tersedia</span>
+              <span className="font-medium text-ims-slate">{t.available}</span>
             </div>
             <span className="font-black text-ims-navy">{Math.max(0, summary.inStock - summary.lowStockItems) || 0}</span>
           </div>
@@ -378,14 +363,14 @@ function ProductInventoryCharts({ summary }) {
   )
 }
 
-function ProductQuickFilters({ statusFilter, updateStatus }) {
+function ProductQuickFilters({ statusFilter, updateStatus, t }) {
   const hasActiveFilters = Boolean(statusFilter)
 
   const statusOptions = [
-    { key: 'high', label: 'High Stock', color: 'bg-ims-success/100' },
-    { key: 'good', label: 'Good Stock', color: 'bg-ims-success/100' },
-    { key: 'low', label: 'Low Stock', color: 'bg-ims-warning/100' },
-    { key: 'critical', label: 'Critical', color: 'bg-ims-danger/100' },
+    { key: 'high', label: t.highStock, color: 'bg-ims-success/100' },
+    { key: 'good', label: t.goodStock, color: 'bg-ims-success/100' },
+    { key: 'low', label: t.lowStock, color: 'bg-ims-warning/100' },
+    { key: 'critical', label: t.criticalStock, color: 'bg-ims-danger/100' },
   ]
   const statusCounts = { high: 0, good: 0, low: 0, critical: 0 }
 
@@ -399,15 +384,14 @@ function ProductQuickFilters({ statusFilter, updateStatus }) {
         <h3 className="text-lg font-bold text-ims-navy">Quick Filters</h3>
         {hasActiveFilters && (
           <button type="button" onClick={clearAll} className="text-xs font-bold text-ims-blue hover:underline">
-            Clear All
+            {t.clearAll}
           </button>
         )}
       </div>
 
       <div className="flex flex-col gap-4">
-        {/* By Status */}
         <div className="flex flex-col gap-2">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-ims-slate/80">By Stock Status</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-ims-slate/80">{t.status}</p>
           {statusOptions.map((option) => (
             <label
               key={option.key}
@@ -463,8 +447,8 @@ function ProductDirectoryLayout({
           <div className="flex flex-col gap-4 border-b border-ims-slate/20 p-6">
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
               <div>
-                <h3 className="text-lg font-bold text-ims-navy">Product Directory</h3>
-                <p className="text-sm text-ims-slate">Browse and manage your inventory catalog</p>
+                <h3 className="text-lg font-bold text-ims-navy">{t.productDirectory}</h3>
+                <p className="text-sm text-ims-slate">{t.productDirectoryDescription}</p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <button
@@ -472,7 +456,7 @@ function ProductDirectoryLayout({
                   className="flex h-10 items-center gap-2 rounded-full bg-ims-blue px-5 text-sm font-bold text-white transition-colors hover:bg-ims-navy shadow-sm"
                   onClick={openCreateDrawer}
                 >
-                  <span className="text-lg leading-none">+</span> Add Product
+                  <span className="text-lg leading-none">+</span> {t.add} {t.product}
                 </button>
               </div>
             </div>
@@ -600,6 +584,7 @@ function ProductDirectoryLayout({
         <ProductQuickFilters
           statusFilter={statusFilter}
           updateStatus={updateStatus}
+          t={t}
         />
       </div>
     </div>
@@ -940,8 +925,8 @@ function MasterData() {
     <div className="space-y-7">
       {activeTab === 'products' ? (
         <>
-          <ProductCatalogStats summary={productSummary} />
-          <ProductInventoryCharts items={items} summary={productSummary} />
+          <ProductCatalogStats summary={productSummary} t={t} />
+          <ProductInventoryCharts items={items} summary={productSummary} t={t} />
         </>
       ) : (
         <>
@@ -1412,14 +1397,14 @@ function MobileCard({ activeTab, item, onEdit, onDelete, t, masterColumns }) {
   )
 }
 
-function DesktopPagination({ meta, page, pageSize, setPage }) {
+function DesktopPagination({ meta, page, pageSize, setPage, t }) {
   const start = meta.total === 0 ? 0 : ((page - 1) * pageSize) + 1
   const end = Math.min(page * pageSize, meta.total)
 
   return (
     <div className="flex items-center justify-between border-t border-ims-slate/10 bg-white px-6 py-4">
       <div className="text-xs font-medium text-ims-slate">
-        Showing {start}-{end} of {meta.total.toLocaleString('en-US')} Products
+        {t.showing} {start}-{end} {t.of} {meta.total.toLocaleString('en-US')} {t.records}
       </div>
       <div className="flex items-center gap-2">
         <button

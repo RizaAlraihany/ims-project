@@ -124,7 +124,7 @@ function TransferList() {
         }}
         donut={{
           title: 'Transfer Mix',
-          subtitle: 'Komposisi approval dan penerimaan',
+          subtitle: t.currentStockMix,
           centerLabel: t.transfer,
           centerValue: chartValues.reduce((sum, value) => sum + value, 0).toLocaleString('en-US'),
           emptyText: isLoading ? t.loading : t.noTransferData,

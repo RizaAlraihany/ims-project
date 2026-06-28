@@ -23,7 +23,7 @@ class AuditTrailApiTest extends TestCase
             'password' => Hash::make('password'),
         ]);
 
-        $this->withHeader('Origin', 'http://localhost:3000')
+        $this->withHeader('Origin', 'http://localhost:5173')
             ->postJson('/api/v1/auth/login', [
             'email' => 'auditor@ims.test',
             'password' => 'password',
@@ -31,7 +31,7 @@ class AuditTrailApiTest extends TestCase
         ])->assertOk()
             ->assertJsonMissingPath('data.token');
 
-        $this->withHeader('Origin', 'http://localhost:3000')
+        $this->withHeader('Origin', 'http://localhost:5173')
             ->postJson('/api/v1/auth/logout')
             ->assertOk();
 

@@ -32,7 +32,7 @@ function getPageInfo(pathname, search, t) {
   const pageTitles = getPageTitles(t)
   const query = new URLSearchParams(search)
   if (pathname === '/master' && (query.get('tab') ?? 'products') === 'products') {
-    return { title: 'Products', subtitle: 'Manage and track your inventory items' }
+    return { title: t.products, subtitle: t.productDirectoryDescription }
   }
   if (pageTitles[pathname]) return pageTitles[pathname];
   if (pathname.startsWith('/transfer/')) return { title: t.transferDetail, subtitle: t.transferDetailSubtitle };
@@ -61,11 +61,11 @@ function TopHeader({ onMobileMenuToggle }) {
       setNotifications(payload.items ?? [])
       setUnreadCount(payload.summary?.unread_count ?? 0)
     } catch (error) {
-      setNotificationError(apiErrorMessage(error, 'Notifikasi belum dapat dimuat.'))
+      setNotificationError(apiErrorMessage(error, t.notificationsUnavailable ?? 'Notifications could not be loaded.'))
     } finally {
       setIsNotificationLoading(false)
     }
-  }, [])
+  }, [t])
 
   async function toggleNotifications() {
     const nextOpen = !isNotificationOpen
@@ -81,7 +81,7 @@ function TopHeader({ onMobileMenuToggle }) {
       await notificationsApi.markAsRead(notificationId)
       await loadNotifications()
     } catch (error) {
-      setNotificationError(apiErrorMessage(error, 'Notifikasi gagal ditandai sudah dibaca.'))
+      setNotificationError(apiErrorMessage(error, t.notificationReadFailed ?? 'Could not mark notification as read.'))
     }
   }
 
@@ -94,7 +94,7 @@ function TopHeader({ onMobileMenuToggle }) {
             type="button"
             variant="outline"
             className="flex size-12 items-center justify-center rounded-2xl border border-ims-slate/20 bg-white text-ims-navy shadow-none transition-all duration-300 hover:border-ims-blue lg:hidden"
-            aria-label="Open menu"
+            aria-label={t.openMenu ?? 'Open menu'}
             onClick={onMobileMenuToggle}
           >
             <Menu className="size-6 text-ims-navy" />
@@ -126,7 +126,7 @@ function TopHeader({ onMobileMenuToggle }) {
               type="button"
               variant="outline"
               className="relative size-[52px] rounded-full border border-ims-slate/20 bg-white text-ims-slate shadow-none transition-all duration-300 hover:border-ims-blue hover:bg-white"
-              aria-label="Notifications"
+              aria-label={t.notifications}
               aria-expanded={isNotificationOpen}
               onClick={toggleNotifications}
             >

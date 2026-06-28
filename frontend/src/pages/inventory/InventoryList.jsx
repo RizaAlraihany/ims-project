@@ -214,8 +214,8 @@ function InventoryList() {
           series: [{ label: t.records, values: chartValues, className: 'bg-ims-blue' }],
         }}
         donut={{
-          title: 'Operational Mix',
-          subtitle: 'Komposisi status stok saat ini',
+          title: t.operationalMix,
+          subtitle: t.currentStockMix,
           centerLabel: t.records,
           centerValue: formatNumber(chartValues.reduce((sum, value) => sum + value, 0)),
           emptyText: isLoading ? t.loading : t.noInventoryData,

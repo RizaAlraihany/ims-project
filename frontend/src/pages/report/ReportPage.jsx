@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom'
 import { categoriesApi } from '@/api/categories'
 import { reportsApi } from '@/api/reports'
 import { warehousesApi } from '@/api/warehouses'
-import { MetricCard, OperationsChartGrid } from '@/components/analytics/OperationalCharts'
+import { ChartFilter, MetricCard, OperationsChartGrid } from '@/components/analytics/OperationalCharts'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useRef } from 'react'
@@ -455,33 +455,16 @@ function ReportPage() {
       <OperationsChartGrid
         bar={{
           title: `${activeReport.title} Trend`,
-          subtitle: 'Ringkasan aktivitas berdasarkan waktu',
+          subtitle: t.stockTrendsSubtitle,
           labels: barTrendLabels,
           emptyText: isLoading ? t.loading : t.noReportData,
-          action: (
-            <div className="flex w-fit items-center gap-2 rounded-xl bg-ims-cream/40 p-1">
-              <button 
-                type="button" 
-                onClick={() => setPeriod('weekly')}
-                className={`cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${isWeekly ? 'bg-white font-bold text-ims-navy shadow-sm' : 'text-ims-slate hover:bg-white/50'}`}
-              >
-                Weekly
-              </button>
-              <button 
-                type="button" 
-                onClick={() => setPeriod('monthly')}
-                className={`cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${!isWeekly ? 'bg-white font-bold text-ims-navy shadow-sm' : 'text-ims-slate hover:bg-white/50'}`}
-              >
-                Monthly
-              </button>
-            </div>
-          ),
+          action: <ChartFilter period={period} onChange={setPeriod} />,
           series: [{ label: activeReport.label, values: barSeriesData, className: 'bg-ims-blue' }],
         }}
         donut={{
-          title: 'Report Mix',
-          subtitle: 'Komposisi summary laporan aktif',
-          centerLabel: 'Records',
+          title: t.operationalMix,
+          subtitle: t.currentStockMix,
+          centerLabel: t.records,
           centerValue: Number(pagination?.total || rows.length || 0).toLocaleString('en-US'),
           emptyText: isLoading ? t.loading : t.noReportData,
           items: chartEntries.map(([key, value], index) => ({

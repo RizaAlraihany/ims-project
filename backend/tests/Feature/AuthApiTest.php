@@ -16,7 +16,7 @@ class AuthApiTest extends TestCase
         $this->seed();
 
         $loginResponse = $this
-            ->withHeader('Origin', 'http://localhost:3000')
+            ->withHeader('Origin', 'http://localhost:5173')
             ->postJson('/api/v1/auth/login', [
             'email' => 'admin@ims.test',
             'password' => 'password',
@@ -30,14 +30,14 @@ class AuthApiTest extends TestCase
             ->assertJsonPath('data.user.permissions.0', 'product.view')
             ->assertJsonMissingPath('data.token');
 
-        $this->withHeader('Origin', 'http://localhost:3000')
+        $this->withHeader('Origin', 'http://localhost:5173')
             ->getJson('/api/v1/auth/me')
             ->assertOk()
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.user.email', 'admin@ims.test')
             ->assertJsonPath('data.user.role', 'Super Admin');
 
-        $this->withHeader('Origin', 'http://localhost:3000')
+        $this->withHeader('Origin', 'http://localhost:5173')
             ->postJson('/api/v1/auth/logout')
             ->assertOk()
             ->assertJsonPath('success', true);

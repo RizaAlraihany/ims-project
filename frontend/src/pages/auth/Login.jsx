@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { PackageSearch, ShieldCheck } from 'lucide-react'
+import { Eye, EyeOff, PackageSearch, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -20,6 +20,7 @@ function Login() {
   })
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -71,13 +72,24 @@ function Login() {
               </div>
               <div className="space-y-2.5">
                 <Label htmlFor="password" className="text-xs font-bold uppercase tracking-wider text-ims-slate">{t.password}</Label>
-                <Input
-                  id="password"
-                  className="h-12 rounded-xl border-ims-slate/20 bg-ims-cream/20 px-4 text-[15px] font-medium transition-colors focus:border-ims-blue focus:bg-white focus:ring-ims-blue/20"
-                  type="password"
-                  value={form.password}
-                  onChange={(event) => setForm((value) => ({ ...value, password: event.target.value }))}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    className="h-12 rounded-xl border-ims-slate/20 bg-ims-cream/20 px-4 pr-12 text-[15px] font-medium transition-colors focus:border-ims-blue focus:bg-white focus:ring-ims-blue/20"
+                    type={showPassword ? 'text' : 'password'}
+                    value={form.password}
+                    onChange={(event) => setForm((value) => ({ ...value, password: event.target.value }))}
+                  />
+                  <button
+                    type="button"
+                    aria-label={showPassword ? 'Sembunyikan password' : 'Lihat password'}
+                    aria-pressed={showPassword}
+                    className="absolute right-3 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-ims-slate transition-colors hover:bg-ims-cream/50 hover:text-ims-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ims-blue"
+                    onClick={() => setShowPassword((value) => !value)}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
               
               {error ? (

@@ -111,7 +111,7 @@ function StockOpnameList() {
         }}
         donut={{
           title: 'Opname Mix',
-          subtitle: 'Komposisi sesi draft, counting, review, dan adjusted',
+          subtitle: t.currentStockMix,
           centerLabel: t.stockOpname,
           centerValue: chartValues.reduce((sum, value) => sum + value, 0).toLocaleString('en-US'),
           emptyText: isLoading ? t.loading : t.noOpnameData,

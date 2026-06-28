@@ -8,12 +8,12 @@ import ScannerActionButton from '@/components/scanner/ScannerActionButton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
+import { useLanguage } from '@/hooks/useLanguage'
 import { setTransferDraft } from '@/store/transferDraft'
 import { apiErrorMessage } from '@/utils/apiError'
 
-const steps = ['Gudang', 'Barang', 'Jumlah', 'Review']
-
 function TransferForm() {
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const [warehouses, setWarehouses] = useState([])
   const [inventories, setInventories] = useState([])
@@ -50,7 +50,7 @@ function TransferForm() {
           dest_warehouse_id: current.dest_warehouse_id || String(nextWarehouses[1]?.id ?? nextWarehouses[0]?.id ?? ''),
         }))
       } catch (error) {
-        if (!ignore) setError(apiErrorMessage(error, 'Data transfer belum dapat dimuat dari API.'))
+        if (!ignore) setError(apiErrorMessage(error, t.transferLoadFailed))
       } finally {
         if (!ignore) setIsLoading(false)
       }
@@ -61,7 +61,7 @@ function TransferForm() {
     return () => {
       ignore = true
     }
-  }, [])
+  }, [t])
 
   const sourceInventories = useMemo(
     () => inventories.filter((inventory) => String(inventory.warehouse_id) === String(form.source_warehouse_id) && Number(inventory.quantity) > 0),
@@ -87,17 +87,17 @@ function TransferForm() {
     const inventory = sourceInventories.find((inventory) => String(inventory.product_id) === String(selectedProductId))
 
     if (!sourceWarehouse || !destinationWarehouse || !inventory) {
-      setError('Lengkapi gudang dan produk sebelum review.')
+      setError(t.transferMissingSelection)
       return
     }
 
     if (sourceWarehouse.id === destinationWarehouse.id) {
-      setError('Gudang asal dan tujuan tidak boleh sama.')
+      setError(t.transferSameWarehouse)
       return
     }
 
     if (Number(form.quantity) > Number(inventory.quantity)) {
-      setError(`Jumlah melebihi stok tersedia (${inventory.quantity}).`)
+      setError(`${t.transferExceedsStock} (${inventory.quantity}).`)
       return
     }
 
@@ -122,7 +122,7 @@ function TransferForm() {
     const inventory = sourceInventories.find((item) => String(item.product_id) === String(product.id))
 
     if (!inventory) {
-      setError('Barang hasil pindai tidak memiliki stok tersedia di gudang asal.')
+      setError(t.scannedProductNoStock)
       return
     }
 
@@ -130,21 +130,23 @@ function TransferForm() {
     setForm((current) => ({ ...current, product_id: String(product.id) }))
   }
 
+  const transferSteps = [t.warehouse, t.product, t.quantityLabel, t.review]
+
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <section className="flex items-center justify-between">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-wide text-ims-slate">Transfer</p>
-          <h2 className="text-2xl font-bold text-ims-navy">Mutasi Antar-Gudang</h2>
+          <h2 className="text-2xl font-bold text-ims-navy">{t.transferMutationTitle}</h2>
         </div>
         <Button asChild size="sm" variant="outline">
-          <Link to="/transfer">Batal</Link>
+          <Link to="/transfer">{t.cancel}</Link>
         </Button>
       </section>
 
       {/* Stepper */}
       <div className="flex items-center justify-between rounded-3xl border border-ims-slate/20 bg-white p-4">
-        {steps.map((step, index) => (
+        {transferSteps.map((step, index) => (
           <div key={step} className="flex flex-col items-center gap-2 lg:flex-1 lg:flex-row">
             <div className={`grid h-8 w-8 place-items-center rounded-full text-xs font-black shadow-sm ${index === 0 || index === 1 || index === 2 ? 'bg-ims-navy text-white shadow-ims-navy/20' : 'bg-ims-cream/40 text-ims-slate'}`}>
               {index + 1}
@@ -152,7 +154,7 @@ function TransferForm() {
             <span className={`text-[10px] font-bold uppercase lg:text-xs ${index === 0 || index === 1 || index === 2 ? 'text-ims-navy' : 'text-ims-slate'}`}>
               {step}
             </span>
-            {index < steps.length - 1 ? <span className="hidden h-px flex-1 bg-ims-slate/20 lg:block" /> : null}
+            {index < transferSteps.length - 1 ? <span className="hidden h-px flex-1 bg-ims-slate/20 lg:block" /> : null}
           </div>
         ))}
       </div>
@@ -164,29 +166,29 @@ function TransferForm() {
       ) : null}
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard icon={Building2} label="Gudang Asal" value={warehouses.length.toLocaleString('en-US')} helper="Lokasi tersedia" tone="blue" />
-        <MetricCard icon={PackageCheck} label="Item Tersedia" value={sourceInventories.length.toLocaleString('en-US')} helper="Stok > 0" tone="navy" />
-        <MetricCard icon={PackageCheck} label="Total Stok" value={availableTotal.toLocaleString('en-US')} helper="Gudang asal" tone="success" />
-        <MetricCard icon={ArrowRight} label="Qty Transfer" value={transferQty.toLocaleString('en-US')} helper={`Sisa: ${remainingAfterTransfer.toLocaleString('en-US')}`} tone="warning" />
+        <MetricCard icon={Building2} label={t.sourceWarehouse} value={warehouses.length.toLocaleString('en-US')} helper={t.availableLocations} tone="blue" />
+        <MetricCard icon={PackageCheck} label={t.available} value={sourceInventories.length.toLocaleString('en-US')} helper="Stok > 0" tone="navy" />
+        <MetricCard icon={PackageCheck} label={t.totalInventory} value={availableTotal.toLocaleString('en-US')} helper={t.sourceWarehouse} tone="success" />
+        <MetricCard icon={ArrowRight} label={t.transferQuantity} value={transferQty.toLocaleString('en-US')} helper={`${t.remaining}: ${remainingAfterTransfer.toLocaleString('en-US')}`} tone="warning" />
       </section>
 
       <OperationsChartGrid
         bar={{
-          title: 'Kapasitas Gudang Asal',
-          subtitle: 'Top item tersedia untuk transfer',
-          labels: sourceInventories.slice(0, 6).map((inventory) => inventory.product?.sku ?? inventory.product?.name ?? 'Item'),
-          emptyText: isLoading ? 'Memuat data...' : 'Tidak ada stok di gudang asal',
-          series: [{ label: 'Stok', values: sourceInventories.slice(0, 6).map((inventory) => Number(inventory.quantity ?? 0)), className: 'bg-ims-blue' }],
+          title: t.sourceWarehouseCapacity,
+          subtitle: t.topTransferItems,
+          labels: sourceInventories.slice(0, 6).map((inventory) => inventory.product?.sku ?? inventory.product?.name ?? t.items),
+          emptyText: isLoading ? t.loading : t.noInventoryData,
+          series: [{ label: t.stock, values: sourceInventories.slice(0, 6).map((inventory) => Number(inventory.quantity ?? 0)), className: 'bg-ims-blue' }],
         }}
         donut={{
-          title: 'Rencana Transfer',
-          subtitle: 'Perbandingan qty dan sisa stok',
-          centerLabel: 'Qty',
+          title: t.transferPlan,
+          subtitle: t.transferPlanSubtitle,
+          centerLabel: t.qty,
           centerValue: transferQty.toLocaleString('en-US'),
-          emptyText: isLoading ? 'Memuat data...' : 'Pilih barang',
+          emptyText: isLoading ? t.loading : t.chooseItem,
           items: [
-            { label: 'Qty Transfer', value: selectedInventory ? transferQty : 0, color: '#D97706', displayValue: transferQty.toLocaleString('en-US') },
-            { label: 'Sisa Stok', value: selectedInventory ? remainingAfterTransfer : 0, color: '#047857', displayValue: remainingAfterTransfer.toLocaleString('en-US') },
+            { label: t.transferQuantity, value: selectedInventory ? transferQty : 0, color: '#D97706', displayValue: transferQty.toLocaleString('en-US') },
+            { label: t.remainingStock, value: selectedInventory ? remainingAfterTransfer : 0, color: '#047857', displayValue: remainingAfterTransfer.toLocaleString('en-US') },
           ],
         }}
       />
@@ -194,9 +196,9 @@ function TransferForm() {
       {/* Form Container */}
       <div className="rounded-3xl border border-ims-slate/20 bg-white">
         <div className="border-b border-ims-slate/20 p-5">
-          <h3 className="text-sm font-bold text-ims-navy">Rincian Transfer</h3>
+          <h3 className="text-sm font-bold text-ims-navy">{t.transferDetails}</h3>
           <p className="mt-1 text-xs text-ims-slate">
-            {isLoading ? 'Memuat data gudang dan stok...' : 'Pilih gudang asal dan tujuan, kemudian masukkan barang yang akan ditransfer.'}
+            {isLoading ? t.transferDetailsLoading : t.transferDetailsDescription}
           </p>
         </div>
 
@@ -205,7 +207,7 @@ function TransferForm() {
             {/* Source WH */}
             <div className="rounded-2xl border border-ims-slate/20 bg-ims-cream/25 p-4">
               <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-ims-slate" htmlFor="source_warehouse_id">
-                Gudang Asal
+                {t.sourceWarehouse}
               </label>
               <Select
                 id="source_warehouse_id"
@@ -222,7 +224,7 @@ function TransferForm() {
             {/* Destination WH */}
             <div className="rounded-2xl border border-ims-slate/20 bg-ims-cream/25 p-4">
               <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-ims-slate" htmlFor="dest_warehouse_id">
-                Gudang Tujuan
+                {t.destinationWarehouse}
               </label>
               <Select
                 id="dest_warehouse_id"
@@ -242,7 +244,7 @@ function TransferForm() {
           {/* Product Info */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="block text-xs font-bold uppercase tracking-wide text-ims-slate" htmlFor="product_id">Pilih Barang</label>
+              <label className="block text-xs font-bold uppercase tracking-wide text-ims-slate" htmlFor="product_id">{t.chooseItem}</label>
               <Select
                 id="product_id"
                 name="product_id"
@@ -251,17 +253,17 @@ function TransferForm() {
                 onChange={handleChange}
                 disabled={isLoading}
               >
-                {sourceInventories.length === 0 && <option value="">Tidak ada stok di gudang asal</option>}
+                {sourceInventories.length === 0 && <option value="">{t.noInventoryData}</option>}
                 {sourceInventories.map((inventory) => (
                   <option key={inventory.id} value={inventory.product_id}>
-                    {inventory.product?.sku} — {inventory.product?.name} (Tersedia: {inventory.quantity})
+                    {inventory.product?.sku} - {inventory.product?.name} ({t.available}: {inventory.quantity})
                   </option>
                 ))}
               </Select>
             </div>
             
             <div className="space-y-2">
-              <label className="block text-xs font-bold uppercase tracking-wide text-ims-slate" htmlFor="quantity">Jumlah (Quantity)</label>
+              <label className="block text-xs font-bold uppercase tracking-wide text-ims-slate" htmlFor="quantity">{t.quantityLabel}</label>
               <Input 
                 id="quantity" 
                 name="quantity" 
@@ -277,12 +279,12 @@ function TransferForm() {
 
           <div className="mt-8 flex items-center justify-between border-t border-ims-slate/20 pt-5">
             <Button type="button" variant="ghost" asChild>
-              <Link to="/transfer"><ArrowLeft size={16} className="mr-2" /> Kembali</Link>
+              <Link to="/transfer"><ArrowLeft size={16} className="mr-2" /> {t.back}</Link>
             </Button>
             <div className="flex flex-wrap justify-end gap-2">
               <ScannerActionButton onProductFound={handleScannedProduct} />
               <Button type="submit" disabled={isLoading || sourceInventories.length === 0}>
-                Lanjut ke Review <ArrowRight size={16} className="ml-2" />
+                {t.continueToReview} <ArrowRight size={16} className="ml-2" />
               </Button>
             </div>
           </div>

@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { useLanguage } from '@/hooks/useLanguage'
 import { cn } from '@/utils/cn'
 
 function safePercent(value, total) {
@@ -6,28 +8,32 @@ function safePercent(value, total) {
 }
 
 export function ChartFilter({ period, onChange }) {
+  const { t } = useLanguage()
   const isWeekly = period === 'weekly'
   return (
-    <div className="flex w-fit items-center gap-2 rounded-xl bg-ims-cream/40 p-1">
+    <div className="flex w-fit items-center gap-1 rounded-xl bg-ims-cream/40 p-1" role="group" aria-label="Chart period">
       <button 
         type="button" 
         onClick={() => onChange('weekly')}
-        className={`cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${isWeekly ? 'bg-white font-bold text-ims-navy shadow-sm' : 'text-ims-slate hover:bg-white/50'}`}
+        aria-pressed={isWeekly}
+        className={`cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ims-blue/30 ${isWeekly ? 'bg-white font-bold text-ims-navy shadow-sm' : 'text-ims-slate hover:bg-white/50'}`}
       >
-        Weekly
+        {t.weekly ?? 'Weekly'}
       </button>
       <button 
         type="button" 
         onClick={() => onChange('monthly')}
-        className={`cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${!isWeekly ? 'bg-white font-bold text-ims-navy shadow-sm' : 'text-ims-slate hover:bg-white/50'}`}
+        aria-pressed={!isWeekly}
+        className={`cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ims-blue/30 ${!isWeekly ? 'bg-white font-bold text-ims-navy shadow-sm' : 'text-ims-slate hover:bg-white/50'}`}
       >
-        Monthly
+        {t.monthly ?? 'Monthly'}
       </button>
     </div>
   )
 }
 
 function MetricCard({ icon: Icon, label, value, helper, tone = 'blue' }) {
+  const isLongHelper = typeof helper === 'string' && helper.length > 42
   const toneClass = {
     blue: 'bg-ims-blue/10 text-ims-blue',
     navy: 'bg-ims-navy/10 text-ims-navy',
@@ -45,12 +51,12 @@ function MetricCard({ icon: Icon, label, value, helper, tone = 'blue' }) {
   }[tone] ?? 'bg-ims-blue/10 text-ims-blue'
 
   return (
-    <div className="flex flex-col gap-3 rounded-3xl border border-ims-slate/20 bg-white p-6 transition-shadow hover:shadow-lg">
+    <div className="flex min-h-[156px] flex-col gap-3 overflow-hidden rounded-3xl border border-ims-slate/20 bg-white p-6 transition-shadow hover:shadow-lg">
       <div className="flex items-center justify-between">
         <div className={cn('grid h-11 w-11 shrink-0 place-items-center rounded-xl', toneClass)}>
           {Icon ? <Icon size={22} /> : null}
         </div>
-        {helper ? (
+        {helper && !isLongHelper ? (
           <span className={cn('rounded-full px-2 py-1 text-xs font-bold', badgeClass)}>
             {helper}
           </span>
@@ -60,6 +66,11 @@ function MetricCard({ icon: Icon, label, value, helper, tone = 'blue' }) {
         <p className="text-sm font-medium text-ims-slate">{label}</p>
         <p className="text-[32px] font-black leading-10 text-ims-navy">{value}</p>
       </div>
+      {helper && isLongHelper ? (
+        <p className="rounded-2xl border border-ims-slate/10 bg-ims-cream/35 px-3 py-2 text-xs font-semibold leading-5 text-ims-blue">
+          {helper}
+        </p>
+      ) : null}
     </div>
   )
 }
@@ -75,7 +86,11 @@ function OperationsChartGrid({ bar, donut }) {
   )
 }
 
-function BarTrendPanel({ title, subtitle, action, labels = [], series = [], emptyText = 'No data' }) {
+function BarTrendPanel({ title, subtitle, action, labels = [], series = [], emptyText, showPeriodFilter = true }) {
+  const { t } = useLanguage()
+  const [localPeriod, setLocalPeriod] = useState('weekly')
+  const headerAction = action ?? (showPeriodFilter ? <ChartFilter period={localPeriod} onChange={setLocalPeriod} /> : null)
+  const resolvedEmptyText = emptyText ?? t.noChartData ?? 'No chart data'
   const maxValue = Math.max(1, ...labels.flatMap((_, index) => series.map((item) => Number(item.values?.[index] || 0))))
   const hasData = series.some((item) => item.values?.some((value) => Number(value) > 0))
 
@@ -86,12 +101,12 @@ function BarTrendPanel({ title, subtitle, action, labels = [], series = [], empt
           <h3 className="text-lg font-bold text-ims-navy">{title}</h3>
           {subtitle ? <p className="text-sm text-ims-slate">{subtitle}</p> : null}
         </div>
-        {action && <div>{action}</div>}
+        {headerAction && <div>{headerAction}</div>}
       </div>
 
       {!hasData ? (
         <div className="grid h-[300px] place-items-center rounded-2xl border border-dashed border-ims-slate/20 bg-ims-cream/25 text-sm font-medium text-ims-slate/80">
-          {emptyText}
+          {resolvedEmptyText}
         </div>
       ) : (
         <div className="mt-2 overflow-x-auto">
@@ -145,8 +160,10 @@ function BarTrendPanel({ title, subtitle, action, labels = [], series = [], empt
   )
 }
 
-function DonutPanel({ title, subtitle, items = [], centerValue, centerLabel, emptyText = 'No data' }) {
+function DonutPanel({ title, subtitle, items = [], centerValue, centerLabel, emptyText }) {
+  const { t } = useLanguage()
   const total = items.reduce((sum, item) => sum + Number(item.value || 0), 0)
+  const resolvedEmptyText = emptyText ?? t.noChartData ?? 'No chart data'
   let cursor = 0
   const segments = items.map((item) => {
     const start = cursor
@@ -175,7 +192,7 @@ function DonutPanel({ title, subtitle, items = [], centerValue, centerLabel, emp
           </div>
         ) : (
           <div className="grid h-[200px] w-full place-items-center rounded-2xl border border-dashed border-ims-slate/25 bg-ims-cream/25 text-sm font-semibold text-ims-slate">
-            {emptyText}
+            {resolvedEmptyText}
           </div>
         )}
       </div>

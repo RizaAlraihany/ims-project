@@ -222,7 +222,7 @@ function AuditTrailPage() {
         }}
         donut={{
           title: 'Audit Mix',
-          subtitle: 'Komposisi login dan mutasi stok',
+          subtitle: t.currentStockMix,
           centerLabel: t.logs,
           centerValue: auditChartValues.reduce((sum, value) => sum + value, 0).toLocaleString('en-US'),
           emptyText: isLoading ? t.loading : t.auditNotFound,

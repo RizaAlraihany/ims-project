@@ -33,7 +33,7 @@ import { apiErrorMessage } from '@/utils/apiError'
 
 const sections = [
   {
-    group: 'Akun',
+    groupKey: 'accountSecurity',
     items: [
       { id: 'profile', icon: UserCircle, labelKey: 'profile' },
       { id: 'general', icon: SlidersHorizontal, labelKey: 'settingsGeneral' },
@@ -42,7 +42,7 @@ const sections = [
     ],
   },
   {
-    group: 'Sistem',
+    groupKey: 'system',
     items: [
       { id: 'company', icon: Building2, labelKey: 'settingsCompany' },
       { id: 'inventory', icon: Database, labelKey: 'settingsInventory' },
@@ -57,17 +57,19 @@ const sections = [
 const sectionItems = sections.flatMap((section) => section.items)
 const sectionIds = sectionItems.map((item) => item.id)
 
-const descriptions = {
-  profile: 'Identitas akun aktif, role, dan status akses pengguna.',
-  general: 'Bahasa antarmuka, nama aplikasi, timezone, dan preferensi dasar.',
-  users: 'Kelola user, status akun, dan role operasional.',
-  roles: 'Atur permission operasional untuk setiap role.',
-  company: 'Identitas perusahaan untuk laporan dan dokumen operasional.',
-  inventory: 'Aturan stok, metode biaya, dan notifikasi stok minimum.',
-  notification: 'Pengaturan notifikasi email, low stock, dan transfer.',
-  security: 'Session timeout, kebijakan password, dan keamanan akun.',
-  backup: 'Jadwal backup dan retensi data sistem.',
-  api: 'Rate limit, webhook, dan rotasi token integrasi.',
+function getDescriptions(t) {
+  return {
+    profile: t.settingsProfileDescription,
+    general: t.settingsGeneralDescription,
+    users: t.settingsUsersDescription,
+    roles: t.settingsRolesDescription,
+    company: t.settingsCompanyDescription,
+    inventory: t.settingsInventoryDescription,
+    notification: t.settingsNotificationDescription,
+    security: t.settingsSecurityDescription,
+    backup: t.settingsBackupDescription,
+    api: t.settingsApiDescription,
+  }
 }
 
 const languageOptions = [
@@ -136,6 +138,7 @@ function SettingsPage() {
   const activeSection = sectionIds.includes(requestedSection) ? requestedSection : 'profile'
   const activeItem = sectionItems.find((item) => item.id === activeSection) ?? sectionItems[0]
   const ActiveIcon = activeItem.icon
+  const descriptions = useMemo(() => getDescriptions(t), [t])
 
   const roleName = typeof user?.role === 'string'
     ? user.role
@@ -161,7 +164,7 @@ function SettingsPage() {
         setPermissions(permissionResponse.data?.data ?? [])
         setSettings(Object.fromEntries((settingResponse.data?.data ?? []).map((item) => [item.key, item.value ?? ''])))
       } catch (error) {
-        if (!ignore) setError(apiErrorMessage(error, 'Pengaturan belum dapat dimuat.'))
+        if (!ignore) setError(apiErrorMessage(error, t.settingsUnavailable))
       }
     }
 
@@ -170,7 +173,7 @@ function SettingsPage() {
     return () => {
       ignore = true
     }
-  }, [])
+  }, [t])
 
   function selectSection(sectionId) {
     setSearchParams(sectionId === 'profile' ? {} : { section: sectionId })
@@ -194,9 +197,9 @@ function SettingsPage() {
       const response = await settingsApi.update(payload)
       const updated = Object.fromEntries((response.data?.data ?? []).map((item) => [item.key, item.value ?? '']))
       setSettings((current) => ({ ...current, ...updated }))
-      setStatusMessage('Pengaturan berhasil diperbarui.')
+      setStatusMessage(t.dataUpdated)
     } catch (error) {
-      setError(apiErrorMessage(error, 'Pengaturan gagal diperbarui.'))
+      setError(apiErrorMessage(error, t.dataSaveFailed))
     }
   }
 
@@ -214,15 +217,15 @@ function SettingsPage() {
             </div>
           </div>
           <div className="mt-4 flex items-center gap-4 text-[11px] font-semibold text-ims-slate">
-            <span><strong className="text-ims-navy">{t.active ?? 'Aktif'}</strong> status</span>
-            <span><strong className="text-ims-navy">{roles.length}</strong> role</span>
+            <span><strong className="text-ims-navy">{t.active}</strong> {t.status}</span>
+            <span><strong className="text-ims-navy">{roles.length}</strong> {t.role}</span>
           </div>
         </section>
 
         <section className="space-y-5">
           {sections.map((section) => (
-            <div key={section.group}>
-              <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-ims-slate/80">{section.group}</p>
+            <div key={section.groupKey}>
+              <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-ims-slate/80">{t[section.groupKey] ?? section.groupKey}</p>
               <div className="space-y-1">
                 {section.items.map((item) => {
                   const Icon = item.icon
@@ -283,8 +286,8 @@ function SettingsPage() {
 
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard icon={UsersRound} label={t.rolePermission} value={roles.length.toLocaleString('en-US')} helper={t.role} tone="blue" />
-          <MetricCard icon={ShieldCheck} label="Permission" value={permissions.length.toLocaleString('en-US')} helper={t.systemSettings} tone="navy" />
-          <MetricCard icon={Database} label="Settings" value={settingsCount.toLocaleString('en-US')} helper={t.settingsGeneral} tone="success" />
+          <MetricCard icon={ShieldCheck} label={t.permissionsLabel} value={permissions.length.toLocaleString('en-US')} helper={t.systemSettings} tone="navy" />
+          <MetricCard icon={Database} label={t.settingsLabel} value={settingsCount.toLocaleString('en-US')} helper={t.settingsGeneral} tone="success" />
           <MetricCard icon={ActiveIcon} label={t[activeItem.labelKey] ?? activeSection} value="1" helper={descriptions[activeSection]} tone="warning" />
         </section>
 
@@ -292,20 +295,20 @@ function SettingsPage() {
           bar={{
             title: t.systemSettings,
             subtitle: descriptions[activeSection],
-            labels: ['Role', 'Permission', 'Settings'],
-            emptyText: 'Pengaturan belum dapat dimuat.',
-            series: [{ label: 'Total', values: [roles.length, permissions.length, settingsCount], className: 'bg-ims-blue' }],
+            labels: [t.role, t.permissionsLabel, t.settingsLabel],
+            emptyText: t.settingsUnavailable,
+            series: [{ label: t.total, values: [roles.length, permissions.length, settingsCount], className: 'bg-ims-blue' }],
           }}
           donut={{
-            title: 'Settings Mix',
+            title: t.settingsMix,
             subtitle: t[activeItem.labelKey] ?? activeSection,
-            centerLabel: 'Data',
+            centerLabel: t.dataLabel,
             centerValue: (roles.length + permissions.length + settingsCount).toLocaleString('en-US'),
-            emptyText: 'Pengaturan belum dapat dimuat.',
+            emptyText: t.settingsUnavailable,
             items: [
-              { label: 'Role', value: roles.length, color: '#4B5694', displayValue: roles.length.toLocaleString('en-US') },
-              { label: 'Permission', value: permissions.length, color: '#7288AE', displayValue: permissions.length.toLocaleString('en-US') },
-              { label: 'Settings', value: settingsCount, color: '#047857', displayValue: settingsCount.toLocaleString('en-US') },
+              { label: t.role, value: roles.length, color: '#4B5694', displayValue: roles.length.toLocaleString('en-US') },
+              { label: t.permissionsLabel, value: permissions.length, color: '#7288AE', displayValue: permissions.length.toLocaleString('en-US') },
+              { label: t.settingsLabel, value: settingsCount, color: '#047857', displayValue: settingsCount.toLocaleString('en-US') },
             ],
           }}
         />
