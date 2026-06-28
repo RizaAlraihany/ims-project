@@ -19,18 +19,20 @@ describe('axiosClient API integration', () => {
     localStorage.clear()
   })
 
-  it('adds the stored Sanctum bearer token to API requests', async () => {
-    storeSession({ token: 'phase-13-token', user: { id: 1, name: 'Admin' } })
+  it('uses Sanctum cookie/session requests without attaching a bearer token', async () => {
+    storeSession({ user: { id: 1, name: 'Admin' } })
 
     const response = await axiosClient.get('/inventory', {
       adapter: adapterWithResponse(),
     })
 
-    expect(response.config.headers.Authorization).toBe('Bearer phase-13-token')
+    expect(response.config.withCredentials).toBe(true)
+    expect(response.config.withXSRFToken).toBe(true)
+    expect(response.config.headers.Authorization).toBeUndefined()
   })
 
   it('clears the stored session when the API responds with 401', async () => {
-    storeSession({ token: 'expired-token', user: { id: 1, name: 'Admin' } })
+    storeSession({ user: { id: 1, name: 'Admin' } })
 
     await expect(
       axiosClient.get('/inventory', {
@@ -38,7 +40,6 @@ describe('axiosClient API integration', () => {
       }),
     ).rejects.toBeTruthy()
 
-    expect(localStorage.getItem('ims_api_token')).toBeNull()
     expect(localStorage.getItem('ims_user')).toBeNull()
   })
 })

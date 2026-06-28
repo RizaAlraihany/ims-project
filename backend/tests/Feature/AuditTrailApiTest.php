@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\AuditLog;
 use App\Models\Category;
+use App\Models\Role;
 use App\Models\User;
+use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\Sanctum;
@@ -21,14 +23,15 @@ class AuditTrailApiTest extends TestCase
             'password' => Hash::make('password'),
         ]);
 
-        $token = $this->postJson('/api/v1/auth/login', [
+        $this->withHeader('Origin', 'http://localhost:3000')
+            ->postJson('/api/v1/auth/login', [
             'email' => 'auditor@ims.test',
             'password' => 'password',
             'device_name' => 'audit-test',
         ])->assertOk()
-            ->json('data.token');
+            ->assertJsonMissingPath('data.token');
 
-        $this->withToken($token)
+        $this->withHeader('Origin', 'http://localhost:3000')
             ->postJson('/api/v1/auth/logout')
             ->assertOk();
 
@@ -48,7 +51,7 @@ class AuditTrailApiTest extends TestCase
 
     public function test_mutating_api_requests_are_recorded_by_audit_middleware(): void
     {
-        $user = User::factory()->create();
+        $user = $this->userWithRole('Super Admin');
         Sanctum::actingAs($user);
 
         $this->postJson('/api/v1/categories', [
@@ -65,7 +68,7 @@ class AuditTrailApiTest extends TestCase
 
     public function test_audit_logs_can_be_listed_and_filtered(): void
     {
-        $user = User::factory()->create();
+        $user = $this->userWithRole('Auditor');
         Sanctum::actingAs($user);
 
         $category = Category::factory()->create();
@@ -88,5 +91,14 @@ class AuditTrailApiTest extends TestCase
             ->assertJsonPath('data.items.0.table_name', 'categories')
             ->assertJsonPath('data.items.0.record_id', $category->id)
             ->assertJsonPath('data.summary.total_rows', 1);
+    }
+
+    private function userWithRole(string $roleName): User
+    {
+        $this->seed(RolePermissionSeeder::class);
+
+        return User::factory()->create([
+            'role_id' => Role::where('name', $roleName)->firstOrFail()->id,
+        ]);
     }
 }

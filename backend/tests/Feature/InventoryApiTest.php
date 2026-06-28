@@ -6,10 +6,8 @@ use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\StockBatch;
 use App\Models\StockMovement;
-use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class InventoryApiTest extends TestCase
@@ -18,7 +16,7 @@ class InventoryApiTest extends TestCase
 
     public function test_inventory_and_low_stock_endpoints_return_current_stock(): void
     {
-        Sanctum::actingAs(User::factory()->create());
+        $this->actingAsRole();
 
         $warehouse = Warehouse::factory()->create();
         $product = Product::factory()->create([
@@ -32,20 +30,19 @@ class InventoryApiTest extends TestCase
             'location_bin' => 'Aisle 1, Bin A1',
         ]);
 
-        $this->getJson('/api/inventory')
+        $this->getJson('/api/v1/inventory')
             ->assertOk()
             ->assertJsonPath('data.0.product.id', $product->id)
             ->assertJsonPath('data.0.warehouse.id', $warehouse->id);
 
-        $this->getJson('/api/inventory/low-stock')
+        $this->getJson('/api/v1/inventory/low-stock')
             ->assertOk()
             ->assertJsonPath('data.0.product.id', $product->id);
     }
 
     public function test_stock_card_returns_product_movements_batches_and_current_stock(): void
     {
-        $user = User::factory()->create();
-        Sanctum::actingAs($user);
+        $user = $this->actingAsRole();
 
         $warehouse = Warehouse::factory()->create();
         $product = Product::factory()->create();
@@ -76,7 +73,7 @@ class InventoryApiTest extends TestCase
             'user_id' => $user->id,
         ]);
 
-        $this->getJson("/api/inventory/stock-card?product_id={$product->id}&warehouse_id={$warehouse->id}")
+        $this->getJson("/api/v1/inventory/stock-card?product_id={$product->id}&warehouse_id={$warehouse->id}")
             ->assertOk()
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.product.id', $product->id)

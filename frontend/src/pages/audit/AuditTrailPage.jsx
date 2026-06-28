@@ -2,7 +2,7 @@ import { Eye, ShieldCheck, Calendar as CalendarIcon, ChevronDown } from 'lucide-
 import { format, differenceInDays } from 'date-fns'
 import { useEffect, useState } from 'react'
 import { auditLogsApi } from '@/api/auditLogs'
-import { OperationsChartGrid } from '@/components/analytics/OperationalCharts'
+import { MetricCard, OperationsChartGrid } from '@/components/analytics/OperationalCharts'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -182,18 +182,29 @@ function AuditTrailPage() {
         </div>
       </section>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        {[
-          [t.totalRecords, summary.total_rows ?? 0],
-          ['Login', summary.login_count ?? 0],
-          [t.stockMovement, summary.mutation_count ?? 0],
-        ].map(([label, value]) => (
-          <div key={label} className="rounded-3xl border border-ims-slate/20 bg-white p-4">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-ims-slate">{label}</p>
-            <p className="mt-1 text-2xl font-black text-ims-navy">{Number(value).toLocaleString('en-US')}</p>
-          </div>
-        ))}
-      </div>
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <MetricCard
+          icon={ShieldCheck}
+          label={t.totalRecords}
+          value={Number(summary.total_rows ?? pagination.total ?? 0).toLocaleString('en-US')}
+          helper={t.logsRecorded}
+          tone="blue"
+        />
+        <MetricCard
+          icon={Eye}
+          label="Login"
+          value={Number(summary.login_count ?? 0).toLocaleString('en-US')}
+          helper={t.auditTrail}
+          tone="success"
+        />
+        <MetricCard
+          icon={CalendarIcon}
+          label={t.stockMovement}
+          value={Number(summary.mutation_count ?? 0).toLocaleString('en-US')}
+          helper={t.movementLedger}
+          tone="warning"
+        />
+      </section>
 
       {error ? (
         <div className="rounded-[10px] border border-ims-danger/20 bg-ims-danger/10 p-3 text-sm text-ims-danger">

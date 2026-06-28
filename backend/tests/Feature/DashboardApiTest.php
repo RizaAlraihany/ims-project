@@ -6,10 +6,8 @@ use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\StockMovement;
 use App\Models\Transfer;
-use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class DashboardApiTest extends TestCase
@@ -18,8 +16,7 @@ class DashboardApiTest extends TestCase
 
     public function test_dashboard_summary_returns_operational_metrics(): void
     {
-        $user = User::factory()->create();
-        Sanctum::actingAs($user);
+        $user = $this->actingAsRole();
 
         $sourceWarehouse = Warehouse::factory()->create(['code' => 'WH-A']);
         $destinationWarehouse = Warehouse::factory()->create(['code' => 'WH-B']);
@@ -52,7 +49,7 @@ class DashboardApiTest extends TestCase
             'status' => 'Pending',
         ]);
 
-        $this->getJson('/api/dashboard/summary')
+        $this->getJson('/api/v1/dashboard/summary')
             ->assertOk()
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.metrics.total_sku', 1)
@@ -67,7 +64,7 @@ class DashboardApiTest extends TestCase
 
     public function test_v1_dashboard_summary_route_is_available(): void
     {
-        Sanctum::actingAs(User::factory()->create());
+        $this->actingAsRole();
 
         $this->getJson('/api/v1/dashboard/summary')
             ->assertOk()
@@ -93,7 +90,7 @@ class DashboardApiTest extends TestCase
 
     public function test_dashboard_low_stock_orders_largest_deficit_first(): void
     {
-        Sanctum::actingAs(User::factory()->create());
+        $this->actingAsRole();
 
         $warehouse = Warehouse::factory()->create();
         $criticalProduct = Product::factory()->create([
@@ -114,7 +111,7 @@ class DashboardApiTest extends TestCase
             'quantity' => 0,
         ]);
 
-        $this->getJson('/api/dashboard/summary')
+        $this->getJson('/api/v1/dashboard/summary')
             ->assertOk()
             ->assertJsonPath('data.low_stocks.0.product.sku', $criticalProduct->sku)
             ->assertJsonPath('data.low_stocks.1.product.sku', $warningProduct->sku);

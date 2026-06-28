@@ -9,10 +9,8 @@ use App\Models\StockOpname;
 use App\Models\StockOpnameItem;
 use App\Models\Transfer;
 use App\Models\TransferItem;
-use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class ReportApiTest extends TestCase
@@ -21,7 +19,7 @@ class ReportApiTest extends TestCase
 
     public function test_stock_report_returns_filtered_inventory_rows_and_summary(): void
     {
-        Sanctum::actingAs(User::factory()->create());
+        $this->actingAsRole('Auditor');
 
         $warehouse = Warehouse::factory()->create(['code' => 'WH-RPT']);
         $product = Product::factory()->create([
@@ -48,8 +46,7 @@ class ReportApiTest extends TestCase
 
     public function test_movement_report_returns_filtered_movement_rows(): void
     {
-        $user = User::factory()->create();
-        Sanctum::actingAs($user);
+        $user = $this->actingAsRole('Auditor');
 
         $warehouse = Warehouse::factory()->create();
         $product = Product::factory()->create(['sku' => 'SKU-MOV-001']);
@@ -76,8 +73,7 @@ class ReportApiTest extends TestCase
 
     public function test_transfer_and_opname_reports_return_operational_rows(): void
     {
-        $user = User::factory()->create();
-        Sanctum::actingAs($user);
+        $user = $this->actingAsRole('Auditor');
 
         $source = Warehouse::factory()->create(['code' => 'WH-SRC']);
         $destination = Warehouse::factory()->create(['code' => 'WH-DST']);

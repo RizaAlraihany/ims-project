@@ -63,8 +63,10 @@ class UserController extends Controller
         ]);
     }
 
-    public function destroy(User $user): JsonResponse
+    public function destroy(Request $request, User $user): JsonResponse
     {
+        abort_unless($request->user()?->hasPermissionTo('user.delete'), 403, 'Permission Denied');
+
         $user->delete();
 
         return response()->json([

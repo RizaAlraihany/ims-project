@@ -6,10 +6,8 @@ use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\StockBatch;
 use App\Models\StockMovement;
-use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class MovementApiTest extends TestCase
@@ -18,14 +16,14 @@ class MovementApiTest extends TestCase
 
     public function test_stock_in_updates_inventory_average_cost_batch_and_ledger(): void
     {
-        Sanctum::actingAs(User::factory()->create());
+        $this->actingAsRole();
 
         $product = Product::factory()->average()->create([
             'average_cost' => 0,
         ]);
         $warehouse = Warehouse::factory()->create();
 
-        $this->postJson('/api/movements/in', [
+        $this->postJson('/api/v1/stock-in', [
             'product_id' => $product->id,
             'warehouse_id' => $warehouse->id,
             'quantity' => 20,
@@ -47,19 +45,19 @@ class MovementApiTest extends TestCase
 
     public function test_stock_out_uses_fifo_and_rejects_insufficient_stock(): void
     {
-        Sanctum::actingAs(User::factory()->create());
+        $this->actingAsRole();
 
         $product = Product::factory()->fifo()->create();
         $warehouse = Warehouse::factory()->create();
 
-        $this->postJson('/api/movements/in', [
+        $this->postJson('/api/v1/stock-in', [
             'product_id' => $product->id,
             'warehouse_id' => $warehouse->id,
             'quantity' => 10,
             'unit_cost' => 10000,
         ])->assertCreated();
 
-        $this->postJson('/api/movements/out', [
+        $this->postJson('/api/v1/stock-out', [
             'product_id' => $product->id,
             'warehouse_id' => $warehouse->id,
             'quantity' => 4,
@@ -75,7 +73,7 @@ class MovementApiTest extends TestCase
             'quantity' => 4,
         ]);
 
-        $this->postJson('/api/movements/out', [
+        $this->postJson('/api/v1/stock-out', [
             'product_id' => $product->id,
             'warehouse_id' => $warehouse->id,
             'quantity' => 99,
@@ -84,7 +82,7 @@ class MovementApiTest extends TestCase
 
     public function test_v1_stock_in_and_stock_out_contract_routes_work(): void
     {
-        Sanctum::actingAs(User::factory()->create());
+        $this->actingAsRole();
 
         $product = Product::factory()->average()->create([
             'average_cost' => 0,

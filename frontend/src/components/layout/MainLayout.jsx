@@ -1,7 +1,7 @@
 import {
   Boxes, Building2, Calendar, ChevronDown, ChevronLeft, ChevronRight,
   ClipboardCheck, FileText, Filter, History, Home, Layers3,
-  PackageMinus, PackagePlus, PackageSearch, Repeat2,
+  PackageMinus, PackagePlus, PackageSearch, Repeat2, ScanLine,
   Ruler, Settings, TrendingUp, UsersRound,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -9,24 +9,26 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import BottomNav from '@/components/layout/BottomNav'
 import TopHeader from '@/components/layout/TopHeader'
 import { useLanguage } from '@/hooks/useLanguage'
+import { usePermissions } from '@/hooks/usePermissions'
 import { cn } from '@/utils/cn'
 
 const navGroups = [
   {
     titleKey: 'analytics',
     items: [
-      { to: '/', labelKey: 'dashboard', icon: Home },
+      { to: '/', labelKey: 'dashboard', icon: Home, permissions: ['dashboard.view'] },
       { 
         to: '/reports?type=stocks', 
         labelKey: 'reporting', 
         icon: FileText,
+        permissions: ['report.view'],
         children: [
-          { to: '/reports?type=movements', labelKey: 'movement', icon: TrendingUp },
-          { to: '/reports?type=transfers', labelKey: 'transfer', icon: Filter },
-          { to: '/reports?type=opnames', labelKey: 'opname', icon: Calendar },
+          { to: '/reports?type=movements', labelKey: 'movement', icon: TrendingUp, permissions: ['report.view'] },
+          { to: '/reports?type=transfers', labelKey: 'transfer', icon: Filter, permissions: ['report.view'] },
+          { to: '/reports?type=opnames', labelKey: 'opname', icon: Calendar, permissions: ['report.view'] },
         ]
       },
-      { to: '/audit', labelKey: 'auditTrail', icon: History },
+      { to: '/audit', labelKey: 'auditTrail', icon: History, permissions: ['audit.view'] },
     ],
   },
   {
@@ -36,20 +38,22 @@ const navGroups = [
         to: '/master?tab=products',
         labelKey: 'dataBarang',
         icon: Boxes,
+        permissions: ['product.view'],
         children: [
-          { to: '/master?tab=categories', labelKey: 'categories', icon: Layers3 },
-          { to: '/master?tab=units', labelKey: 'units', icon: Ruler },
+          { to: '/master?tab=categories', labelKey: 'categories', icon: Layers3, permissions: ['product.view'] },
+          { to: '/master?tab=units', labelKey: 'units', icon: Ruler, permissions: ['product.view'] },
         ],
       },
       { 
         to: '/master?tab=warehouses', 
         labelKey: 'dataGudang', 
         icon: Building2,
+        permissions: ['warehouse.view'],
         children: [
-          { to: '/transfer', labelKey: 'transferStock', icon: Repeat2 },
+          { to: '/transfer', labelKey: 'transferStock', icon: Repeat2, permissions: ['transfer.view'] },
         ]
       },
-      { to: '/master?tab=contacts', labelKey: 'dataKontak', icon: UsersRound },
+      { to: '/master?tab=contacts', labelKey: 'dataKontak', icon: UsersRound, permissions: ['product.view'] },
     ],
   },
   {
@@ -59,25 +63,48 @@ const navGroups = [
         to: '/inventory', 
         labelKey: 'inventory', 
         icon: Boxes,
+        permissions: ['inventory.view'],
         children: [
-          { to: '/inventory/stock-card', labelKey: 'stockCard', icon: Layers3 },
-          { to: '/stock-in', labelKey: 'stockIn', icon: PackagePlus },
-          { to: '/stock-out', labelKey: 'stockOut', icon: PackageMinus },
+          { to: '/inventory/stock-card', labelKey: 'stockCard', icon: Layers3, permissions: ['inventory.view'] },
+          { to: '/stock-in', labelKey: 'stockIn', icon: PackagePlus, permissions: ['stock_in.create'] },
+          { to: '/stock-out', labelKey: 'stockOut', icon: PackageMinus, permissions: ['stock_out.create'] },
         ]
       },
-      { to: '/opname', labelKey: 'stockOpname', icon: ClipboardCheck },
+      { to: '/opname', labelKey: 'stockOpname', icon: ClipboardCheck, permissions: ['opname.view'] },
+      { to: '/scanner', labelKey: 'scanner', icon: ScanLine, permissions: ['product.view'] },
     ],
   },
   {
     titleKey: 'settingsGroup',
     items: [
-      { to: '/settings', labelKey: 'systemSettings', icon: Settings },
+      { to: '/settings', labelKey: 'systemSettings', icon: Settings, permissions: ['setting.view'] },
     ],
   },
 ]
 
-const primaryNavGroups = navGroups.filter((g) => g.titleKey !== 'settingsGroup')
-const systemNavGroup = navGroups.find((g) => g.titleKey === 'settingsGroup')
+function filterNavGroups(groups, hasAnyPermission) {
+  return groups
+    .map((group) => {
+      const items = group.items
+        .map((item) => {
+          const children = item.children?.filter((child) => hasAnyPermission(child.permissions ?? [])) ?? []
+          const hasItemAccess = hasAnyPermission(item.permissions ?? [])
+
+          if (!hasItemAccess && children.length === 0) {
+            return null
+          }
+
+          return {
+            ...item,
+            children,
+          }
+        })
+        .filter(Boolean)
+
+      return items.length ? { ...group, items } : null
+    })
+    .filter(Boolean)
+}
 
 function CollapsibleNavItem({ item, isOpen: sidebarOpen, t }) {
   const location = useLocation()
@@ -121,6 +148,8 @@ function CollapsibleNavItem({ item, isOpen: sidebarOpen, t }) {
         type="button"
         onClick={handleParentClick}
         title={!sidebarOpen ? t[item.labelKey] ?? item.labelKey : undefined}
+        aria-expanded={sidebarOpen ? isExpanded : undefined}
+        aria-label={t[item.labelKey] ?? item.labelKey}
         className={cn(
           'flex w-full items-center rounded-xl py-3 text-sm font-semibold transition-all duration-200',
           sidebarOpen ? 'gap-3 px-4' : 'justify-center px-0',
@@ -164,6 +193,7 @@ function CollapsibleNavItem({ item, isOpen: sidebarOpen, t }) {
                   key={child.to}
                   to={child.to}
                   onClick={(e) => handleChildClick(e, child)}
+                  aria-label={t[child.labelKey] ?? child.labelKey}
                   className={cn(
                     'flex items-center gap-2 rounded-lg py-2 pl-8 pr-3 text-[12px] font-semibold transition-colors',
                     childActive
@@ -232,6 +262,7 @@ function SidebarGroup({ group, isOpen, t, showTitle = true }) {
               to={item.to}
               end={item.to === '/'}
               title={!isOpen ? t[item.labelKey] : undefined}
+              aria-label={t[item.labelKey] ?? item.labelKey}
               className={() =>
                 cn(
                   'flex items-center rounded-xl py-3 text-sm font-semibold transition-all duration-200',
@@ -256,6 +287,10 @@ function SidebarGroup({ group, isOpen, t, showTitle = true }) {
 
 function DesktopSidebar({ isOpen, onToggle, isMobile }) {
   const { t } = useLanguage()
+  const { hasAnyPermission } = usePermissions()
+  const filteredNavGroups = filterNavGroups(navGroups, hasAnyPermission)
+  const primaryNavGroups = filteredNavGroups.filter((g) => g.titleKey !== 'settingsGroup')
+  const systemNavGroup = filteredNavGroups.find((g) => g.titleKey === 'settingsGroup')
 
   return (
     <aside
@@ -271,6 +306,7 @@ function DesktopSidebar({ isOpen, onToggle, isMobile }) {
         onClick={onToggle}
         className="absolute -right-3 top-8 z-10 grid h-7 w-7 place-items-center rounded-full border border-ims-slate/20 bg-white text-ims-slate shadow-sm hover:border-ims-blue/50 hover:text-ims-navy"
         aria-label="Toggle Sidebar"
+        aria-expanded={isOpen}
       >
         {isOpen ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
       </button>

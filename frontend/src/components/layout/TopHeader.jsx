@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { notificationsApi } from '@/api/notifications'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/hooks/useAuth'
 import { useLanguage } from '@/hooks/useLanguage'
 import { apiErrorMessage } from '@/utils/apiError'
 import { formatDate } from '@/utils/formatDate'
@@ -41,9 +42,9 @@ function getPageInfo(pathname, search, t) {
 
 function TopHeader({ onMobileMenuToggle }) {
   const location = useLocation()
+  const { user } = useAuth()
   const { t } = useLanguage()
   const pageInfo = getPageInfo(location.pathname, location.search, t)
-  const isProductHeader = location.pathname === '/master' && ((new URLSearchParams(location.search)).get('tab') ?? 'products') === 'products'
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
@@ -105,13 +106,19 @@ function TopHeader({ onMobileMenuToggle }) {
         </div>
 
         <div className="flex items-center justify-end gap-3">
-          <div className="hidden h-[51px] w-[288px] cursor-pointer items-center gap-3 rounded-2xl bg-ims-slate/10 px-5 text-ims-slate transition-all duration-300 hover:ring-1 hover:ring-ims-blue/25 md:flex">
+          {user?.role ? (
+            <div className="hidden min-w-0 rounded-full border border-ims-slate/20 bg-ims-cream/50 px-3 py-2 text-right sm:block">
+              <p className="max-w-[140px] truncate text-[10px] font-black uppercase leading-none text-ims-slate">{user.role}</p>
+              <p className="mt-1 max-w-[140px] truncate text-xs font-bold leading-none text-ims-navy">{user.name}</p>
+            </div>
+          ) : null}
+          <div
+            className="hidden h-[51px] w-[288px] cursor-not-allowed items-center gap-3 rounded-2xl border border-ims-slate/10 bg-ims-slate/10 px-5 text-ims-slate/70 md:flex"
+            aria-disabled="true"
+            title={t.searchComingSoon}
+          >
             <Search className="size-6 shrink-0" />
-            <input
-              type="text"
-              placeholder={isProductHeader ? 'Search inventory...' : t.searchPlaceholder}
-              className="w-full bg-transparent text-[15px] font-semibold text-ims-navy placeholder:text-ims-navy/80 focus:outline-none"
-            />
+            <span className="truncate text-[15px] font-semibold text-ims-navy/70">{t.searchComingSoon}</span>
           </div>
           <div className="relative">
             <Button
@@ -120,6 +127,7 @@ function TopHeader({ onMobileMenuToggle }) {
               variant="outline"
               className="relative size-[52px] rounded-full border border-ims-slate/20 bg-white text-ims-slate shadow-none transition-all duration-300 hover:border-ims-blue hover:bg-white"
               aria-label="Notifications"
+              aria-expanded={isNotificationOpen}
               onClick={toggleNotifications}
             >
               <Bell className="size-6 text-ims-slate" />

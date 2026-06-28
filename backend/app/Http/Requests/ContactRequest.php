@@ -12,7 +12,13 @@ class ContactRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        $permission = match (true) {
+            $this->isMethod('post') => 'product.create',
+            $this->isMethod('put'), $this->isMethod('patch') => 'product.update',
+            default => null,
+        };
+
+        return $permission !== null && ($this->user()?->hasPermissionTo($permission) ?? false);
     }
 
     /**

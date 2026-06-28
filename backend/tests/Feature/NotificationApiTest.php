@@ -7,10 +7,8 @@ use App\Models\Notification;
 use App\Models\Product;
 use App\Models\StockOpname;
 use App\Models\StockOpnameItem;
-use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class NotificationApiTest extends TestCase
@@ -19,8 +17,7 @@ class NotificationApiTest extends TestCase
 
     public function test_low_stock_notification_is_generated_and_can_be_marked_read(): void
     {
-        $user = User::factory()->create();
-        Sanctum::actingAs($user);
+        $user = $this->actingAsRole();
 
         $warehouse = Warehouse::factory()->create(['code' => 'WH-LOW']);
         $product = Product::factory()->create([
@@ -50,7 +47,7 @@ class NotificationApiTest extends TestCase
 
     public function test_transfer_workflow_creates_notifications(): void
     {
-        Sanctum::actingAs(User::factory()->create());
+        $this->actingAsRole();
 
         $source = Warehouse::factory()->create(['code' => 'WH-SRC']);
         $destination = Warehouse::factory()->create(['code' => 'WH-DST']);
@@ -92,8 +89,7 @@ class NotificationApiTest extends TestCase
 
     public function test_opname_workflow_creates_notifications(): void
     {
-        $user = User::factory()->create();
-        Sanctum::actingAs($user);
+        $user = $this->actingAsRole();
 
         $warehouse = Warehouse::factory()->create(['code' => 'WH-OPN']);
         $product = Product::factory()->average()->create(['minimum_stock' => 3]);

@@ -163,13 +163,13 @@ class ProductController extends Controller
                 ->cursor()
                 ->each(function (Product $product) use ($output): void {
                     fputcsv($output, [
-                        $product->sku,
-                        $product->barcode,
-                        $product->name,
+                        $this->csvSafe($product->sku),
+                        $this->csvSafe($product->barcode),
+                        $this->csvSafe($product->name),
                         $product->category_id,
                         $product->unit_id,
                         $product->minimum_stock,
-                        $product->cost_method,
+                        $this->csvSafe($product->cost_method),
                         $product->status ? 1 : 0,
                     ]);
                 });
@@ -178,6 +178,15 @@ class ProductController extends Controller
         }, $filename, [
             'Content-Type' => 'text/csv',
         ]);
+    }
+
+    private function csvSafe(null|string $value): null|string
+    {
+        if ($value === null || $value === '') {
+            return $value;
+        }
+
+        return preg_match('/^[=+\-@]/', $value) === 1 ? "'".$value : $value;
     }
 
     private function resolveProduct(string $product): Product

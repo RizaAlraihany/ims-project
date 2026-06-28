@@ -121,21 +121,15 @@ function Login() {
             
             <div className="mb-4 rounded-3xl border border-white/10 bg-white/10 p-6 backdrop-blur-md">
               <p className="text-xs font-black uppercase tracking-widest text-ims-light/90">
-                {t.todaySnapshot}
+                {t.enterpriseInventory}
               </p>
-              <div className="mt-5 grid grid-cols-3 gap-4 text-center">
-                <div className="flex flex-col items-center justify-center rounded-2xl bg-white/10 py-4 transition-colors hover:bg-white/20">
-                  <p className="text-3xl font-black text-white">5</p>
-                  <p className="mt-1 text-[11px] font-bold uppercase tracking-wider text-white/60">WH</p>
-                </div>
-                <div className="flex flex-col items-center justify-center rounded-2xl bg-white/10 py-4 transition-colors hover:bg-white/20">
-                  <p className="text-3xl font-black text-white">42</p>
-                  <p className="mt-1 text-[11px] font-bold uppercase tracking-wider text-white/60">SKU</p>
-                </div>
-                <div className="flex flex-col items-center justify-center rounded-2xl bg-ims-warning/20 py-4 transition-colors hover:bg-ims-warning/30 border border-ims-warning/30">
-                  <p className="text-3xl font-black text-ims-warning">8</p>
-                  <p className="mt-1 text-[11px] font-bold uppercase tracking-wider text-ims-warning/80">{t.alert}</p>
-                </div>
+              <div className="mt-5 space-y-3">
+                {[t.loginBenefitRealtime, t.loginBenefitScanner, t.loginBenefitLedger].map((benefit) => (
+                  <div key={benefit} className="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3">
+                    <span className="h-2 w-2 shrink-0 rounded-full bg-ims-light" />
+                    <p className="text-sm font-bold leading-5 text-white/85">{benefit}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

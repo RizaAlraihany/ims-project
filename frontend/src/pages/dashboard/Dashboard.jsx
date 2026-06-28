@@ -239,8 +239,8 @@ function Dashboard() {
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <BarTrendPanel
-            title="Stock Movement"
-            subtitle="Inbound, outbound, dan transfer dari aktivitas terbaru"
+            title={t.stockMovement}
+            subtitle={t.movementTrendSubtitle}
             labels={labels}
             emptyText={isLoading ? t.loading : t.noActivities}
             action={<ChartFilter period={period} onChange={setPeriod} />}
@@ -252,8 +252,8 @@ function Dashboard() {
           />
         </div>
         <DonutPanel
-          title="Operational Mix"
-          subtitle="Komposisi alert dashboard saat ini"
+          title={t.operationalMix}
+          subtitle={t.operationalMixSubtitle}
           centerLabel={t.records}
           centerValue={formatNumber(
             Number(metrics.low_stock_count ?? 0) +

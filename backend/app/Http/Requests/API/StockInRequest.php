@@ -8,7 +8,7 @@ class StockInRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->hasPermissionTo('stock_in.create') ?? false;
     }
 
     /**

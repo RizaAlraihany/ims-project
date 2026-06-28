@@ -78,6 +78,24 @@ class AuthorizationApiTest extends TestCase
         $this->deleteJson('/api/v1/users/1')->assertStatus(403);
     }
 
+    public function test_user_with_view_user_permission_cannot_delete_users(): void
+    {
+        $viewerRole = Role::create([
+            'name' => 'User Viewer',
+            'description' => 'Can only view users.',
+        ]);
+        $viewerRole->permissions()->sync(
+            \App\Models\Permission::where('code', 'user.view')->pluck('id')->all(),
+        );
+
+        $viewer = User::factory()->create(['role_id' => $viewerRole->id, 'role' => 'User Viewer']);
+        $target = User::factory()->create();
+
+        $this->actingAs($viewer, 'sanctum');
+
+        $this->deleteJson("/api/v1/users/{$target->id}")->assertStatus(403);
+    }
+
     public function test_user_with_permission_can_access_sensitive_endpoint(): void
     {
         $role = Role::where('name', 'Super Admin')->first();

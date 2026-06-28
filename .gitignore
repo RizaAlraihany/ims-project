@@ -1,4 +1,6 @@
 docs/
 .agents/
 .codex/
+cluade-skills/
 AGENTS.md
+audit.md

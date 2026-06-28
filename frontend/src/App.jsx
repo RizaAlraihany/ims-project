@@ -61,25 +61,51 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route element={<ProtectedRoute />}>
               <Route element={<MainLayout />}>
-                <Route index element={<Dashboard />} />
-                <Route path="/master" element={<MasterData />} />
-                <Route path="/inventory" element={<InventoryList />} />
-                <Route path="/inventory/stock-card" element={<StockCard />} />
-                <Route path="/stock-in" element={<StockMovementList key="in" mode="in" />} />
-                <Route path="/stock-in/create" element={<StockMovementModalRoute mode="in" returnTo="/stock-in" />} />
-                <Route path="/stock-out" element={<StockMovementList key="out" mode="out" />} />
-                <Route path="/stock-out/create" element={<StockMovementModalRoute mode="out" returnTo="/stock-out" />} />
-                <Route path="/scanner" element={<ScannerView />} />
-                <Route path="/transfer" element={<TransferList />} />
-                <Route path="/transfer/create" element={<TransferForm />} />
-                <Route path="/transfer/review" element={<TransferReview />} />
-                <Route path="/transfer/:id" element={<TransferDetail />} />
-                <Route path="/opname" element={<StockOpnameList />} />
-                <Route path="/opname/create" element={<StockOpnameCreate />} />
-                <Route path="/opname/:id" element={<StockOpnameDetail />} />
-                <Route path="/reports" element={<ReportPage />} />
-                <Route path="/audit" element={<AuditTrailPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
+                <Route element={<ProtectedRoute permissions={['dashboard.view']} />}>
+                  <Route index element={<Dashboard />} />
+                </Route>
+                <Route element={<ProtectedRoute permissions={['product.view', 'warehouse.view']} />}>
+                  <Route path="/master" element={<MasterData />} />
+                </Route>
+                <Route element={<ProtectedRoute permissions={['inventory.view']} />}>
+                  <Route path="/inventory" element={<InventoryList />} />
+                  <Route path="/inventory/stock-card" element={<StockCard />} />
+                </Route>
+                <Route element={<ProtectedRoute permissions={['stock_in.create']} />}>
+                  <Route path="/stock-in" element={<StockMovementList key="in" mode="in" />} />
+                  <Route path="/stock-in/create" element={<StockMovementModalRoute mode="in" returnTo="/stock-in" />} />
+                </Route>
+                <Route element={<ProtectedRoute permissions={['stock_out.create']} />}>
+                  <Route path="/stock-out" element={<StockMovementList key="out" mode="out" />} />
+                  <Route path="/stock-out/create" element={<StockMovementModalRoute mode="out" returnTo="/stock-out" />} />
+                </Route>
+                <Route element={<ProtectedRoute permissions={['product.view']} />}>
+                  <Route path="/scanner" element={<ScannerView />} />
+                </Route>
+                <Route element={<ProtectedRoute permissions={['transfer.view']} />}>
+                  <Route path="/transfer" element={<TransferList />} />
+                  <Route path="/transfer/:id" element={<TransferDetail />} />
+                </Route>
+                <Route element={<ProtectedRoute permissions={['transfer.create']} />}>
+                  <Route path="/transfer/create" element={<TransferForm />} />
+                  <Route path="/transfer/review" element={<TransferReview />} />
+                </Route>
+                <Route element={<ProtectedRoute permissions={['opname.view']} />}>
+                  <Route path="/opname" element={<StockOpnameList />} />
+                  <Route path="/opname/:id" element={<StockOpnameDetail />} />
+                </Route>
+                <Route element={<ProtectedRoute permissions={['opname.create']} />}>
+                  <Route path="/opname/create" element={<StockOpnameCreate />} />
+                </Route>
+                <Route element={<ProtectedRoute permissions={['report.view']} />}>
+                  <Route path="/reports" element={<ReportPage />} />
+                </Route>
+                <Route element={<ProtectedRoute permissions={['audit.view']} />}>
+                  <Route path="/audit" element={<AuditTrailPage />} />
+                </Route>
+                <Route element={<ProtectedRoute permissions={['setting.view']} />}>
+                  <Route path="/settings" element={<SettingsPage />} />
+                </Route>
               </Route>
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
