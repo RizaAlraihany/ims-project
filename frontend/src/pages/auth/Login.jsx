@@ -108,6 +108,40 @@ function Login() {
                 {isSubmitting ? t.processing : t.loginSubmit}
               </Button>
             </form>
+
+            {/* Demo credentials */}
+            <div className="mt-6 rounded-2xl border border-ims-blue/20 bg-ims-blue/5 p-4">
+              <p className="mb-2.5 text-[11px] font-black uppercase tracking-widest text-ims-blue">
+                🎯 Demo Aplikasi
+              </p>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between rounded-lg bg-white/70 px-3 py-2">
+                  <span className="text-[12px] font-semibold text-ims-slate">Email</span>
+                  <button
+                    type="button"
+                    className="text-[12px] font-bold text-ims-navy hover:text-ims-blue transition-colors cursor-pointer"
+                    onClick={() => setForm((v) => ({ ...v, email: 'admin@ims.test' }))}
+                    title="Klik untuk mengisi otomatis"
+                  >
+                    admin@ims.test
+                  </button>
+                </div>
+                <div className="flex items-center justify-between rounded-lg bg-white/70 px-3 py-2">
+                  <span className="text-[12px] font-semibold text-ims-slate">Password</span>
+                  <button
+                    type="button"
+                    className="text-[12px] font-bold text-ims-navy hover:text-ims-blue transition-colors cursor-pointer"
+                    onClick={() => setForm((v) => ({ ...v, password: 'password' }))}
+                    title="Klik untuk mengisi otomatis"
+                  >
+                    password
+                  </button>
+                </div>
+              </div>
+              <p className="mt-2 text-[10px] text-ims-slate/60 text-center">
+                Klik email atau password untuk mengisi otomatis
+              </p>
+            </div>
           </div>
         </div>
 
