@@ -30,10 +30,9 @@ class AuthController extends Controller
             ]);
         }
 
-        Auth::guard('web')->login($user);
-        
-        // Regenerate session to prevent session fixation
-        $request->session()->regenerate();
+        // Delete old tokens and create a new Sanctum token (cross-domain compatible)
+        $user->tokens()->delete();
+        $token = $user->createToken($request->input('device_name', 'ims-frontend'))->plainTextToken;
 
         $userData = $this->userPayload($user);
         $auditService->log($user, 'LOGIN', 'users', $user->id, null, ['email' => $user->email], $request->ip());
@@ -43,8 +42,10 @@ class AuthController extends Controller
             'message' => 'Login berhasil.',
             'data' => [
                 'user' => $userData,
+                'token' => $token,
             ],
             'user' => $userData,
+            'token' => $token,
         ]);
     }
 
@@ -53,11 +54,8 @@ class AuthController extends Controller
         $user = $request->user();
         $auditService->log($user, 'LOGOUT', 'users', $user?->id, null, ['email' => $user?->email], $request->ip());
         
-        Auth::guard('web')->logout();
-        
-        // Invalidate session
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        // Revoke current token
+        $request->user()?->currentAccessToken()?->delete();
 
         return response()->json([
             'success' => true,

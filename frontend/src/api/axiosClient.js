@@ -3,14 +3,17 @@ import { clearSession } from '@/store/authStorage'
 
 const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000/api/v1',
-  withCredentials: true,
-  withXSRFToken: true,
+  withCredentials: false,
   headers: {
     Accept: 'application/json',
   },
 })
 
 axiosClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('ims_token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
   return config
 })
 
